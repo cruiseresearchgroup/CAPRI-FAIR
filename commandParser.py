@@ -1,5 +1,6 @@
 from utils import logger
-from PyInquirer import prompt
+import inquirer
+# from inquirer import prompt
 from config import datasets, models, fusions, evaluationMetrics
 
 modelChoices = []
@@ -51,39 +52,29 @@ def interactiveCommandForm():
     initChoices()
     # Appy choices to the questions
     questions = [
-        {
-            'type': 'list',
-            'name': 'Model',
-            'message': 'Choose the model you need:',
-            'choices': modelChoices
-        },
-        {
-            'type': 'list',
-            'name': 'Dataset',
-            'message': 'Choose the dataset you need:',
-            'choices': datasetChoices
-        },
-        {
-            'type': 'list',
-            'name': 'Fusion',
-            'message': 'Choose the fusion you need:',
-            'choices': fusionChoices
-        },
-        {
-            'type': 'checkbox',
-            'name': 'Evaluation',
-            'message': 'Choose at least one evaluation metric:',
-            'choices': evaluatorChoices
-        },
-        {
-            'type': 'confirm',
-            'message': 'Do you confirm your selected choices?',
-            'name': 'Confirmation',
-            'default': True,
-        },
+        inquirer.List('Model',
+            message="Choose the model you need:",
+            choices=modelChoices
+        ),
+        inquirer.List('Dataset',
+            message="Choose the dataset you need:",
+            choices=datasetChoices
+        ),
+        inquirer.List('Fusion',
+            message="Choose the fusion you need:",
+            choices=fusionChoices
+        ),
+        inquirer.Checkbox('Evaluation',
+            message="Choose at least one evaluation metric:",
+            choices=evaluatorChoices
+        ),
+        inquirer.Confirm('Confirmation',
+            message="Do you confirm your selected choices?",
+            default=True
+        ),
     ]
     # Showing the selected items to the user
-    userInputs = prompt(questions)
+    userInputs = inquirer.prompt(questions)
     return userInputs
 
 

@@ -3,12 +3,24 @@ import numpy as np
 from utils import logger
 from collections import defaultdict
 
+import ray
+
 
 class FriendBasedCF(object):
     def __init__(self, eta=0.5):
         self.eta = eta
         self.socialProximity = defaultdict(list)
         self.checkinMatrix = None
+
+    def loadObjectsIntoRay(self):
+        eta_ref = ray.put(self.eta)
+        socialProximity_ref = ray.put(self.socialProximity)
+        checkinMatrix_ref = ray.put(self.checkinMatrix)
+        return {
+            'eta': eta_ref,
+            'socialProximity': socialProximity_ref,
+            'checkinMatrix': checkinMatrix_ref
+        }
 
     def friendsSimilarityCalculation(self, socialRelations, checkinMatrix):
         startTime = time.time()
@@ -39,3 +51,15 @@ class FriendBasedCF(object):
                                 for k, jf, jc in self.socialProximity[i]])
             return numerator
         return 0.0
+
+
+@ray.remote
+def friend_based_cf_predict(i, eta, socialProximity, checkinMatrix, pois):
+    results = np.zeros(len(pois))
+    for j in pois:
+        if i in socialProximity:
+            numerator = np.sum([(eta * jf + (1 - eta) * jc) * checkinMatrix[k, j]
+                                for k, jf, jc in socialProximity[i]])
+            results[j] = numerator
+
+    return results

@@ -9,7 +9,7 @@ modelName = 'USG'
 def userBasedCalculations(datasetName: str, users: dict, pois: dict, trainingMatrix, groundTruth):
     # Initializing parameters
     userCount = users['count']
-    logDuration = 1 if userCount < 20 else 10
+    logDuration = 10 if userCount < 1000 else 500
     UScores = np.zeros((users['count'], pois['count']))
     # Checking for existing model
     logger('Preparing User-based CF matrix ...')
@@ -31,7 +31,6 @@ def userBasedCalculations(datasetName: str, users: dict, pois: dict, trainingMat
             if uid in groundTruth:
                 for lid in pois['list']:
                     UScores[uid, lid] = U.predict(uid, lid)
-                UScores = np.array(UScores)
         saveModel(UScores, modelName, datasetName, f'U_{userCount}User')
     else:  # It should be loaded
         UScores = loadedModel

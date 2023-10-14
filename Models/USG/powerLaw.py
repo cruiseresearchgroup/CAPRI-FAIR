@@ -9,7 +9,7 @@ modelName = 'USG'
 def powerLawCalculations(datasetName: str, users: dict, pois: dict, trainingMatrix, poiCoos, groundTruth):
     # Initializing parameters
     userCount = users['count']
-    logDuration = 1 if userCount < 20 else 10
+    logDuration = 10 if userCount < 1000 else 500
     GScores = np.zeros((users['count'], pois['count']))
     # Checking for existing model
     logger('Preparing Power Law matrix ...')
@@ -27,7 +27,6 @@ def powerLawCalculations(datasetName: str, users: dict, pois: dict, trainingMatr
             if uid in groundTruth:
                 for lid in pois['list']:
                     GScores[uid, lid] = G.predict(uid, lid)
-                GScores = np.array(GScores)
         saveModel(GScores, modelName, datasetName, f'G_{userCount}User')
     else:  # It should be loaded
         GScores = loadedModel

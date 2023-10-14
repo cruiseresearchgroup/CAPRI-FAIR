@@ -78,15 +78,16 @@ def evaluator(modelName: str, datasetName: str, evalParams: dict, modelParams: d
     # Fetching the list of parameters
     usersList, usersCount, groundTruth, fusion, evaluationList = evalParams['usersList'], evalParams['usersCount'], evalParams[
         'groundTruth'], evalParams['fusion'], evalParams['evaluation']
+    evaluationList = [x['name'] for x in evaluationList]
     # Initializing the metrics
-    logDuration = 1 if len(usersList) < 20 else 10
-    precision, recall, map, ndcg = [], [], [], []
+    logDuration = 10 if usersCount < 1000 else 500
+    precision, recall, mean_ap, ndcg = [], [], [], []
     # Add caching policy (prevent a similar setting to be executed again)
     fileName = f'{modelName}_{datasetName}_{fusion}_{usersCount}user_top{topK}_limit{listLimit}'
     calculatedResults = open(f"{outputsDir}/Rec_{fileName}.txt", 'w+')
     # Initializing evaluation dataframe
-    evalDataFrame = pd.DataFrame(
-        columns=['precision', 'recall', 'ndcg', 'map'])
+    evalDataFrame = []
+    print(f"Evaluation List: {evaluationList}")
     # Iterating over the users
     for counter, userId in enumerate(usersList):
         if userId in groundTruth:
@@ -104,7 +105,7 @@ def evaluator(modelName: str, datasetName: str, evalParams: dict, modelParams: d
             if ('NDCG' in evaluationList):
                 ndcg.append(ndcgk(actual, predicted[:topK]))
             if ('mAP' in evaluationList):
-                map.append(mapk(actual, predicted[:topK]))
+                mean_ap.append(mapk(actual, predicted[:topK]))
             # Adding log to console
             if (counter % logDuration == 0):
                 print(f'{counter} users processed ...')
@@ -114,10 +115,18 @@ def evaluator(modelName: str, datasetName: str, evalParams: dict, modelParams: d
                 str(userId),
                 ','.join([str(lid) for lid in predicted])
             ]) + '\n')
-    # Saving the results to file
-    evalDataFrame = evalDataFrame.append(
+    # Adding results to list
+    print(f"Precisions: {precision[:20]}")
+    print(f"NDCG: {ndcg[:20]}")
+
+    # Compute global metrics
+
+    evalDataFrame.append(
         {'precision': np.mean(precision), 'recall': np.mean(recall),
-         'ndcg': np.mean(ndcg), 'map': np.mean(map)}, ignore_index=True)
+         'ndcg': np.mean(ndcg), 'map': np.mean(mean_ap)})
+    # Saving the results to file
+    evalDataFrame = pd.DataFrame(evalDataFrame)
+    print(evalDataFrame)
     # Saving evaluation results
     evalDataFrame.round(5).to_csv(
         f"{outputsDir}/Eval_{fileName}.csv", index=False)

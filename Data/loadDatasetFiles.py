@@ -30,6 +30,6 @@ def loadDatasetFiles(datasetName: str):
     for file in fileList:
         fileName = os.path.basename(file).split('.')[0]
         # Adding the absolute path to the items: e.g. 'checkins.txt' ==> 'C\\...\\Datacheckins.txt'
-        datasetFiles[fileName] = f'{dataDirectory}\\{datasetName}\\{file}'
+        datasetFiles[fileName] = f'{dataDirectory}/{datasetName}/{file}'
     print(f'{datasetName} dataset files have been loaded for processing!')
     return datasetFiles
