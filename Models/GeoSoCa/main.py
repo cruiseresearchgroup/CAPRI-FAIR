@@ -61,4 +61,6 @@ class GeoSoCaMain:
                       'groundTruth': groundTruth, 'fusion': params['fusion'], 'poiList': pois['list'],
                       'trainingMatrix': trainingMatrix, 'evaluation': params['evaluation']}
         modelParams = {'AKDE': AKDEScores, 'SC': SCScores, 'CC': CCScores}
-        evaluator(modelName, params['datasetName'], evalParams, modelParams)
+        evaluator(modelName, params['datasetName'], evalParams, modelParams,
+                  userCheckinCounts=userCheckinCounts,
+                  poiCheckinCounts=poiCheckinCounts)
