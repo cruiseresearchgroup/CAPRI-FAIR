@@ -26,7 +26,7 @@ class GeoSoCaMain:
         # Loading data from the selected dataset
         logger('Reading dataset instances ...')
         poiCoos = readPoiCoos(datasetFiles['poiCoos'])
-        trainingMatrix = readTrainingData(
+        trainingMatrix, userCheckinCounts, poiCheckinCounts = readTrainingData(
             datasetFiles['train'], users['count'], pois['count'], True)
         socialRelations = readFriendData(
             datasetFiles['socialRelations'], 'ndarray', users['count'])

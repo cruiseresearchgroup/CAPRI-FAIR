@@ -22,7 +22,7 @@ class USGMain:
 
         # Loading training items
         logger('Reading dataset instances ...')
-        trainingMatrix = readTrainingData(
+        trainingMatrix, userCheckinCounts, poiCheckinCounts = readTrainingData(
             datasetFiles['train'], users['count'], pois['count'], False)
         groundTruth = readTestData(datasetFiles['test'])
         socialRelations = readFriendData(
@@ -51,4 +51,6 @@ class USGMain:
                       'groundTruth': groundTruth, 'fusion': params['fusion'], 'poiList': pois['list'],
                       'trainingMatrix': trainingMatrix, 'evaluation': params['evaluation']}
         modelParams = {'U': UScores, 'S': SScores, 'G': GScores}
-        evaluator(modelName, params['datasetName'], evalParams, modelParams)
+        evaluator(modelName, params['datasetName'], evalParams, modelParams,
+                  userCheckinCounts=userCheckinCounts,
+                  poiCheckinCounts=poiCheckinCounts)

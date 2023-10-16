@@ -6,6 +6,9 @@ import multiprocessing as mp
 
 from tqdm import tqdm
 
+CHUNK_SIZE = 32
+
+
 class ForkingPickler4(ForkingPickler):
     def __init__(self, *args):
         if len(args) > 1:
@@ -17,7 +20,6 @@ class ForkingPickler4(ForkingPickler):
     @classmethod
     def dumps(cls, obj, protocol=4):
         return ForkingPickler.dumps(obj, protocol)
-
 
 def dump(obj, file, protocol=4):
     ForkingPickler4(file, protocol).dump(obj)

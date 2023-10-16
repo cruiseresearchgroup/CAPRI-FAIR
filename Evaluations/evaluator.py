@@ -2,9 +2,11 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from Models.utils import normalize
+from Models.parallel_utils import run_parallel, CHUNK_SIZE
 from utils import logger, textToOperator
 from config import USGDict, topK, listLimit, outputsDir
 from Evaluations.metrics.accuracy import precisionk, recallk, ndcgk, mapk
+from Evaluations.metrics.fairness import gceGlobalUserFairness, gceGlobalItemFairness
 
 
 def overallScoreCalculator(modelName: str, userId, evalParams, modelParams):
@@ -67,7 +69,8 @@ def overallScoreCalculator(modelName: str, userId, evalParams, modelParams):
     return np.array(overallScores)
 
 
-def evaluator(modelName: str, datasetName: str, evalParams: dict, modelParams: dict):
+def evaluator(modelName: str, datasetName: str, evalParams: dict, modelParams: dict,
+              userCheckinCounts = None, poiCheckinCounts = None):
     """
     Evaluate the model with the given parameters and return the evaluation metrics
 
@@ -81,6 +84,15 @@ def evaluator(modelName: str, datasetName: str, evalParams: dict, modelParams: d
         Dictionary of evaluation parameters
     modelParams : dict
         Dictionary of model parameters
+    userCheckinCounts : pd.DataFrame
+    ['user_id', 'checkins', 'unique_checkins', 'repeat_ratio', 'repeat_user']
+        Dataframe of users, the number of checkins and unique POIs visited, the
+        ratio of repeat visits, and whether or not they were designated a repeat
+        or explore user.
+    poiCheckinCounts : pd.DataFrame
+    ['poi_id', 'checkins', 'short_head']
+        Dataframe of POIs, the number of checkins, and whether or not they were
+        designated a short-head or long-tail POI.
     """
     logger('Evaluating results ...')
     # Fetching the list of parameters
@@ -88,6 +100,7 @@ def evaluator(modelName: str, datasetName: str, evalParams: dict, modelParams: d
         'groundTruth'], evalParams['fusion'], evalParams['evaluation']
     evaluationList = [x['name'] for x in evaluationList]
     precision, recall, mean_ap, ndcg = [], [], [], []
+    predictions = {}
     # Add caching policy (prevent a similar setting to be executed again)
     fileName = f'{modelName}_{datasetName}_{fusion}_{usersCount}user_top{topK}_limit{listLimit}'
     calculatedResults = open(f"{outputsDir}/Rec_{fileName}.txt", 'w+')
@@ -103,6 +116,7 @@ def evaluator(modelName: str, datasetName: str, evalParams: dict, modelParams: d
                 modelName, userId, evalParams, modelParams)
             predicted = list(reversed(overallScores.argsort()))[
                 :listLimit]
+            predictions[userId] = predicted
             actual = groundTruth[userId]
             if ('Precision' in evaluationList):
                 precision.append(precisionk(actual, predicted[:topK]))
@@ -122,11 +136,18 @@ def evaluator(modelName: str, datasetName: str, evalParams: dict, modelParams: d
     print(f"Precisions: {precision[:20]}")
     print(f"NDCG: {ndcg[:20]}")
 
-    # Compute global metrics
+    metricsSet = {'precision': np.mean(precision), 'recall': np.mean(recall),
+         'ndcg': np.mean(ndcg), 'map': np.mean(mean_ap)}
 
-    evalDataFrame.append(
-        {'precision': np.mean(precision), 'recall': np.mean(recall),
-         'ndcg': np.mean(ndcg), 'map': np.mean(mean_ap)})
+    # Compute global metrics
+    if not ((userCheckinCounts is None) or (poiCheckinCounts is None)):
+        metricsSet['gce_users'] = \
+            gceGlobalUserFairness(groundTruth, predictions, userCheckinCounts)
+        metricsSet['gce_items'] = \
+            gceGlobalItemFairness(groundTruth, predictions, topK, poiCheckinCounts)
+
+    # Consolidate all metrics
+    evalDataFrame.append(metricsSet)
     # Saving the results to file
     evalDataFrame = pd.DataFrame(evalDataFrame)
     print(evalDataFrame)

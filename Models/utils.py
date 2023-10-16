@@ -1,10 +1,13 @@
 import os
 import time
-import numpy as np
-from utils import logger
-import scipy.sparse as sparse
-from collections import defaultdict
+from collections import defaultdict, Counter
 from itertools import islice
+
+import pandas as pd
+import numpy as np
+import scipy.sparse as sparse
+
+from utils import logger
 
 CHUNK_SIZE = 32
 
@@ -50,7 +53,9 @@ def readSparseTrainingData(trainFile: str, numberOfUsers: int, numberOfPoI: int)
 
 def readTrainingData(trainFile: str, numberOfUsers: int, numberOfPoI: int, withFrequency: bool = False):
     """
-    Reads the training data from the file and returns a dictionary.
+    Reads the training data from the file and returns 3 things: a check-in matrix
+    and 2 dataframes denoting the user and item checkin counts. The 2 dataframes
+    will be used in computing global fairness metrics.
 
     Parameters
     ----------
@@ -67,23 +72,59 @@ def readTrainingData(trainFile: str, numberOfUsers: int, numberOfPoI: int, withF
     -------
     trainingMatrix : ndarray
         The ndarray representation of the training data.
+    userCheckinCounts : pd.DataFrame
+        The dataframe of user checkin counts, as well as the ratio of repeat
+        visits and whether or not they are distinguished as repeat or explore
+        users.
+    poiCheckinCounts : pd.DataFrame
+        The dataframe of item/POI checkin counts, as well as the distinction
+        between short-head (popular) and long-tail (unpopular) POIs.
     """
     print('Reading training data...')
     trainingData = open(trainFile, 'r').readlines()
     trainingMatrix = np.zeros((numberOfUsers, numberOfPoI))
+    trainCheckinsByUser = defaultdict(list)
+    trainCheckinsByPOI = defaultdict(list)
+
     # TODO: we may replace this condition with a more compact one
     # e.g. value = freq if withFrequency == True else 1.0
-    if withFrequency == True:
-        for dataInstance in trainingData:
-            uid, lid, freq = dataInstance.strip().split()
-            uid, lid, freq = int(uid), int(lid), int(freq)
-            trainingMatrix[uid, lid] = freq
-    else:
-        for dataInstance in trainingData:
-            uid, lid, _ = dataInstance.strip().split()
-            uid, lid = int(uid), int(lid)
-            trainingMatrix[uid, lid] = 1.0
-    return trainingMatrix
+    for dataInstance in trainingData:
+        uid, lid, freq = dataInstance.strip().split()
+        uid, lid, freq = int(uid), int(lid), int(freq)
+        trainCheckinsByUser[uid].extend([lid for _ in range(freq)])
+        trainCheckinsByPOI[lid].extend([uid for _ in range(freq)])
+        trainingMatrix[uid, lid] = (freq if withFrequency else 1)
+
+    userCheckinCounts = [
+        (user, len(pois), len(set(pois)))
+        for user, pois in dict(trainCheckinsByUser).items()
+    ]
+    userCheckinCounts = pd.DataFrame(
+        userCheckinCounts,
+        columns=['user_id', 'checkins', 'unique_checkins']
+    ).set_index('user_id')
+    userCheckinCounts['repeat_ratio'] = (
+        (userCheckinCounts['checkins'] - userCheckinCounts['unique_checkins'])
+        / userCheckinCounts['checkins'])
+    med = userCheckinCounts['repeat_ratio'].median()
+    userCheckinCounts['repeat_user'] = (
+        userCheckinCounts['repeat_ratio'] >= med)
+
+    print(f"Setting threshold to median repeating POI ratio of {med:.1f}")
+
+    poiCheckinCounts = [
+        (poi, len(users))
+        for poi, users in dict(trainCheckinsByPOI).items()
+    ]
+    poiCheckinCounts = pd.DataFrame(
+        poiCheckinCounts, columns=['poi_id', 'checkins']
+    ).set_index('poi_id').sort_values(by='checkins', ascending=False)
+    med = poiCheckinCounts['checkins'].quantile([0.8]).values[0]
+    poiCheckinCounts['short_head'] = (poiCheckinCounts['checkins'] >= med)
+
+    print(f"Setting threshold to 80th prc. of POI visits of {med:.1f}")
+
+    return trainingMatrix, userCheckinCounts, poiCheckinCounts
 
 
 def readTrainingCheckins(checkinFile: str, sparseTrainingMatrix):
