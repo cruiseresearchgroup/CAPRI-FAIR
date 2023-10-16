@@ -4,6 +4,18 @@ import numpy as np
 from utils import logger
 import scipy.sparse as sparse
 from collections import defaultdict
+from itertools import islice
+
+RAY_CHUNK_SIZE = 64
+
+
+def batched(iterable, n):
+    "Batch data into tuples of length n. The last batch may be shorter."
+    # batched('ABCDEFG', 3) --> ABC DEF G
+    if n < 1:
+        raise ValueError('n must be at least one')
+    while (batch := tuple(islice(iterable, n))):
+        yield batch
 
 
 def readSparseTrainingData(trainFile: str, numberOfUsers: int, numberOfPoI: int):

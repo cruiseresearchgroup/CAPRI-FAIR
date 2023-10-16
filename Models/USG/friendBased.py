@@ -1,25 +1,12 @@
 import ray
 import numpy as np
 from tqdm import tqdm
-from itertools import product, islice
 from utils import logger
 from config import USGDict
-from Models.utils import loadModel, saveModel
+from Models.utils import loadModel, saveModel, batched, RAY_CHUNK_SIZE
 from Models.USG.lib.FriendBasedCF import FriendBasedCF, friend_based_cf_predict
 
-
 modelName = 'USG'
-
-CHUNK_SIZE = 64
-
-
-def batched(iterable, n):
-    "Batch data into tuples of length n. The last batch may be shorter."
-    # batched('ABCDEFG', 3) --> ABC DEF G
-    if n < 1:
-        raise ValueError('n must be at least one')
-    while (batch := tuple(islice(iterable, n))):
-        yield batch
 
 
 def friendBasedCalculations(datasetName: str, users: dict, pois: dict, socialRelations, trainingMatrix, groundTruth):
@@ -45,11 +32,9 @@ def friendBasedCalculations(datasetName: str, users: dict, pois: dict, socialRel
         #         for lid in pois['list']:
         #             SScores[uid, lid] = S.predict(uid, lid)
 
-        # Try and use ray instead
-
         refs = S.loadObjectsIntoRay()
         inputs = (uid for uid in users['list'] if uid in groundTruth)
-        for batch in tqdm(batched(inputs, CHUNK_SIZE)):
+        for batch in tqdm(batched(inputs, RAY_CHUNK_SIZE)):
             results = ray.get([
                 friend_based_cf_predict.remote(
                     uid, refs['eta'], refs['socialProximity'], refs['checkinMatrix'], pois['ref']

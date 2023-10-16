@@ -4,7 +4,9 @@ import numpy as np
 from utils import logger
 from collections import defaultdict
 
+import ray
 
+@ray.remote
 class AdaptiveKernelDensityEstimation(object):
     def __init__(self, alpha=0.5):
         self.R = None
@@ -14,6 +16,21 @@ class AdaptiveKernelDensityEstimation(object):
         self.poiCoos = None
         self.checkinMatrix = None
         self.H1, self.H2 = None, None
+
+    def loadObjectsIntoRay(self):
+        return {
+            'H1': ray.put(self.H1),
+            'H2': ray.put(self.H2),
+            'h': ray.put(self.h),
+            'poiCoos': ray.put(self.poiCoos),
+            'R': ray.put(self.R),
+            'checkinMatrix': ray.put(self.checkinMatrix),
+            'N': ray.put(self.N),
+        }
+
+    def loadObjectsFromRay(self, refs):
+        for attrname, value in refs.items():
+            setattr(self, attrname, ray.get(value))
 
     def precomputeKernelParameters(self, checkinMatrix, poiCoos):
         self.poiCoos = poiCoos
@@ -70,8 +87,36 @@ class AdaptiveKernelDensityEstimation(object):
                 np.exp(-((lat - lat_i)**2 / (2 * self.H1[u]**2 * self.h[u][li]**2)) -
                        ((lng - lng_i)**2 / (2 * self.H2[u]**2 * self.h[u][li]**2))))
 
-    def predict(self, u, l):
-        if not self.H1[u] == 0 and not self.H2[u] == 0 and not sum(self.h[u].values()) == 0:
-            l = [l, self.poiCoos[l]]
-            return self.fGeoWithLocalBandwidth(u, l, self.R)
-        return 1.0
+    def predict(self, u, pois):
+        results = np.ones(len(pois))
+        for l in pois:
+            if not self.H1[u] == 0 and not self.H2[u] == 0 and not sum(self.h[u].values()) == 0:
+                l = [l, self.poiCoos[l]]
+                results[l] = self.fGeoWithLocalBandwidth(u, l, self.R)
+        return results
+
+
+@ray.remote
+def adaptive_kde_predict(u, H1, H2, h, poiCoos, R, checkinMatrix, N, pois):
+    results = np.ones(len(pois))
+
+    for l in pois:
+        if not H1[u] == 0 and not H2[u] == 0 and not sum(h[u].values()) == 0:
+            # fGeoWithLocalBandwidth
+            (lat, lng) = poiCoos[l]
+            K_Hh_values = (
+                # K_Hh
+                (1.0 / (2 * math.pi * H1[u] * H2[u] * h[u][li]**2) *
+                        np.exp(-((lat - lat_i)**2 / (2 * H1[u]**2 * h[u][li]**2)) -
+                                ((lng - lng_i)**2 / (2 * H2[u]**2 * h[u][li]**2))))
+                ######
+                for li, (lat_i, lng_i) in R[u]
+            )
+            checkin_values = (
+                checkinMatrix[u, li]
+                for li, _ in R[u]
+            )
+            ########################
+            results[l] = np.sum([c*k for c, k in zip(checkin_values, K_Hh_values)]) / N[u]
+
+    return results
