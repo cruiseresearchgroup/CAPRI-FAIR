@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
 from Models.utils import normalize
 from utils import logger, textToOperator
 from config import USGDict, topK, listLimit, outputsDir
@@ -32,9 +33,16 @@ def overallScoreCalculator(modelName: str, userId, evalParams, modelParams):
     if (modelName == 'GeoSoCa'):
         AKDEScores, SCScores, CCScores = modelParams['AKDE'], modelParams['SC'], modelParams['CC']
         # Check if Category is skipped
-        overallScores = [textToOperator(fusion, [AKDEScores[userId, lid], SCScores[userId, lid], CCScores[userId, lid]] if CCScores != None else [AKDEScores[userId, lid], SCScores[userId, lid]])
-                         if trainingMatrix[userId, lid] == 0 else -1
-                         for lid in poiList]
+        overallScores = [
+            textToOperator(
+                fusion,
+                [AKDEScores[userId, lid], SCScores[userId, lid], CCScores[userId, lid]]
+                    if not (CCScores is None)
+                    else [AKDEScores[userId, lid], SCScores[userId, lid]]
+            )
+            if trainingMatrix[userId, lid] == 0 else -1
+            for lid in poiList
+        ]
     elif (modelName == 'LORE'):
         KDEScores, FCFScores, AMCScores = modelParams['KDE'], modelParams['FCF'], modelParams['AMC']
         overallScores = [textToOperator(fusion, [KDEScores[userId, lid], FCFScores[userId, lid], AMCScores[userId, lid]])
@@ -79,8 +87,6 @@ def evaluator(modelName: str, datasetName: str, evalParams: dict, modelParams: d
     usersList, usersCount, groundTruth, fusion, evaluationList = evalParams['usersList'], evalParams['usersCount'], evalParams[
         'groundTruth'], evalParams['fusion'], evalParams['evaluation']
     evaluationList = [x['name'] for x in evaluationList]
-    # Initializing the metrics
-    logDuration = 10 if usersCount < 1000 else 500
     precision, recall, mean_ap, ndcg = [], [], [], []
     # Add caching policy (prevent a similar setting to be executed again)
     fileName = f'{modelName}_{datasetName}_{fusion}_{usersCount}user_top{topK}_limit{listLimit}'
@@ -89,7 +95,7 @@ def evaluator(modelName: str, datasetName: str, evalParams: dict, modelParams: d
     evalDataFrame = []
     print(f"Evaluation List: {evaluationList}")
     # Iterating over the users
-    for counter, userId in enumerate(usersList):
+    for counter, userId in tqdm(enumerate(usersList)):
         if userId in groundTruth:
             overallScores = []
             # Processing items
@@ -106,9 +112,6 @@ def evaluator(modelName: str, datasetName: str, evalParams: dict, modelParams: d
                 ndcg.append(ndcgk(actual, predicted[:topK]))
             if ('mAP' in evaluationList):
                 mean_ap.append(mapk(actual, predicted[:topK]))
-            # Adding log to console
-            if (counter % logDuration == 0):
-                print(f'{counter} users processed ...')
             # Writing the results to file
             calculatedResults.write('\t'.join([
                 str(counter),

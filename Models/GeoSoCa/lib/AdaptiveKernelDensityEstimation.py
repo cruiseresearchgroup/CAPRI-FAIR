@@ -1,12 +1,11 @@
+import ctypes
 import time
 import math
 import numpy as np
 from utils import logger
 from collections import defaultdict
 
-import ray
 
-@ray.remote
 class AdaptiveKernelDensityEstimation(object):
     def __init__(self, alpha=0.5):
         self.R = None
@@ -87,36 +86,47 @@ class AdaptiveKernelDensityEstimation(object):
                 np.exp(-((lat - lat_i)**2 / (2 * self.H1[u]**2 * self.h[u][li]**2)) -
                        ((lng - lng_i)**2 / (2 * self.H2[u]**2 * self.h[u][li]**2))))
 
-    def predict(self, u, pois):
-        results = np.ones(len(pois))
-        for l in pois:
-            if not self.H1[u] == 0 and not self.H2[u] == 0 and not sum(self.h[u].values()) == 0:
-                l = [l, self.poiCoos[l]]
-                results[l] = self.fGeoWithLocalBandwidth(u, l, self.R)
-        return results
+    def predict(self, u, l):
+        if not self.H1[u] == 0 and not self.H2[u] == 0 and not sum(self.h[u].values()) == 0:
+            l = [l, self.poiCoos[l]]
+            return self.fGeoWithLocalBandwidth(u, l, self.R)
+        return 1.0
 
 
-@ray.remote
-def adaptive_kde_predict(u, H1, H2, h, poiCoos, R, checkinMatrix, N, pois):
-    results = np.ones(len(pois))
+# @ray.remote
+# def adaptive_kde_predict(u, H1, H2, h, poiCoos, R, checkinMatrix, N, pois):
+#     results = np.ones(len(pois))
 
-    for l in pois:
-        if not H1[u] == 0 and not H2[u] == 0 and not sum(h[u].values()) == 0:
-            # fGeoWithLocalBandwidth
-            (lat, lng) = poiCoos[l]
-            K_Hh_values = (
-                # K_Hh
-                (1.0 / (2 * math.pi * H1[u] * H2[u] * h[u][li]**2) *
-                        np.exp(-((lat - lat_i)**2 / (2 * H1[u]**2 * h[u][li]**2)) -
-                                ((lng - lng_i)**2 / (2 * H2[u]**2 * h[u][li]**2))))
-                ######
-                for li, (lat_i, lng_i) in R[u]
-            )
-            checkin_values = (
-                checkinMatrix[u, li]
-                for li, _ in R[u]
-            )
-            ########################
-            results[l] = np.sum([c*k for c, k in zip(checkin_values, K_Hh_values)]) / N[u]
+#     for l in pois:
+#         if not H1[u] == 0 and not H2[u] == 0 and not sum(h[u].values()) == 0:
+#             # fGeoWithLocalBandwidth
+#             (lat, lng) = poiCoos[l]
+#             K_Hh_values = (
+#                 # K_Hh
+#                 (1.0 / (2 * math.pi * H1[u] * H2[u] * h[u][li]**2) *
+#                         np.exp(-((lat - lat_i)**2 / (2 * H1[u]**2 * h[u][li]**2)) -
+#                                 ((lng - lng_i)**2 / (2 * H2[u]**2 * h[u][li]**2))))
+#                 ######
+#                 for li, (lat_i, lng_i) in R[u]
+#             )
+#             checkin_values = (
+#                 checkinMatrix[u, li]
+#                 for li, _ in R[u]
+#             )
+#             ########################
+#             results[l] = np.sum([c*k for c, k in zip(checkin_values, K_Hh_values)]) / N[u]
 
+#     return results
+
+def adaptive_kde_predict(akdeID, u):
+    """
+    Given the Python object ID of the AKDE model and a user ID,
+    compute the scores of all the POIs
+    """
+    model = ctypes.cast(akdeID, ctypes.py_object).value
+    poisCount = model.checkinMatrix.shape[1]
+    results = np.array([
+        model.predict(u, l)
+        for l in range(poisCount)
+    ])
     return results
