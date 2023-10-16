@@ -27,10 +27,6 @@ class AdaptiveKernelDensityEstimation(object):
             'N': ray.put(self.N),
         }
 
-    def loadObjectsFromRay(self, refs):
-        for attrname, value in refs.items():
-            setattr(self, attrname, ray.get(value))
-
     def precomputeKernelParameters(self, checkinMatrix, poiCoos):
         self.poiCoos = poiCoos
         startTime = time.time()
@@ -93,35 +89,13 @@ class AdaptiveKernelDensityEstimation(object):
         return 1.0
 
 
-# @ray.remote
-# def adaptive_kde_predict(u, H1, H2, h, poiCoos, R, checkinMatrix, N, pois):
-#     results = np.ones(len(pois))
-
-#     for l in pois:
-#         if not H1[u] == 0 and not H2[u] == 0 and not sum(h[u].values()) == 0:
-#             # fGeoWithLocalBandwidth
-#             (lat, lng) = poiCoos[l]
-#             K_Hh_values = (
-#                 # K_Hh
-#                 (1.0 / (2 * math.pi * H1[u] * H2[u] * h[u][li]**2) *
-#                         np.exp(-((lat - lat_i)**2 / (2 * H1[u]**2 * h[u][li]**2)) -
-#                                 ((lng - lng_i)**2 / (2 * H2[u]**2 * h[u][li]**2))))
-#                 ######
-#                 for li, (lat_i, lng_i) in R[u]
-#             )
-#             checkin_values = (
-#                 checkinMatrix[u, li]
-#                 for li, _ in R[u]
-#             )
-#             ########################
-#             results[l] = np.sum([c*k for c, k in zip(checkin_values, K_Hh_values)]) / N[u]
-
-#     return results
-
 def adaptive_kde_predict(akdeID, u):
     """
+    Since the predict() method of this model is so slow, this function aids in
+    parallelizing it.
+
     Given the Python object ID of the AKDE model and a user ID,
-    compute the scores of all the POIs
+    compute the scores of all the POIs.
     """
     model = ctypes.cast(akdeID, ctypes.py_object).value
     poisCount = model.checkinMatrix.shape[1]

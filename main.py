@@ -3,8 +3,6 @@ from utils import logger
 from commandParser import getUserChoices
 from Data.loadDatasetFiles import loadDatasetFiles
 
-import ray
-
 
 def __init__():
     # Creating log file
@@ -38,7 +36,5 @@ def __init__():
         logger('CAPRI framework finished!')
     else:
         logger('Framework stopepd!')
-
-ray.init()
 
 __init__()

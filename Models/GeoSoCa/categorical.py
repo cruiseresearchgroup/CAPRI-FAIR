@@ -1,4 +1,5 @@
 import numpy as np
+from tqdm import tqdm
 from utils import logger
 from Models.utils import loadModel, saveModel
 from Models.GeoSoCa.lib.CategoricalCorrelation import CategoricalCorrelation
@@ -32,7 +33,6 @@ def categoricalCalculations(datasetName: str, users: dict, pois: dict, trainingM
     """
     # Initializing parameters
     userCount = users['count']
-    logDuration = 1 if userCount < 20 else 10
     CCScores = np.zeros((userCount, pois['count']))
     # Checking for existing model
     logger('Preparing Categorical Correlation matrix ...')
@@ -50,10 +50,7 @@ def categoricalCalculations(datasetName: str, users: dict, pois: dict, trainingM
             CC.loadModel(loadNumpyArray)
         # Computing the final scores
         print("Now, training the model for each user ...")
-        for counter, uid in enumerate(users['list']):
-            # Adding log to console
-            if (counter % logDuration == 0):
-                print(f'User#{counter} processed ...')
+        for counter, uid in tqdm(enumerate(users['list'])):
             if uid in groundTruth:
                 for lid in pois['list']:
                     CCScores[uid, lid] = CC.predict(uid, lid)

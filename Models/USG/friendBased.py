@@ -1,9 +1,9 @@
-import ray
 import numpy as np
 from tqdm import tqdm
 from utils import logger
 from config import USGDict
-from Models.utils import loadModel, saveModel, batched, RAY_CHUNK_SIZE
+from Models.utils import loadModel, saveModel, CHUNK_SIZE
+from Models.parallel_utils import run_parallel
 from Models.USG.lib.FriendBasedCF import FriendBasedCF, friend_based_cf_predict
 
 modelName = 'USG'
@@ -24,25 +24,16 @@ def friendBasedCalculations(datasetName: str, users: dict, pois: dict, socialRel
         # TODO: We may be able to load the model from disk
         S.friendsSimilarityCalculation(socialRelations, trainingMatrix)
 
-        print(f"Users in GT: {len(groundTruth)}")
-        print(f"POIs: {len(pois['list'])}")
+        print("Now, predicting the model for each user ...")
+        uids = (uid for uid in users['list'] if uid in groundTruth)
+        args = [(id(S), uid) for uid in uids]
 
-        # for uid in tqdm(users['list']):
-        #     if uid in groundTruth:
-        #         for lid in pois['list']:
-        #             SScores[uid, lid] = S.predict(uid, lid)
+        with np.errstate(under='ignore'):
+            results = run_parallel(friend_based_cf_predict, args, CHUNK_SIZE)
 
-        refs = S.loadObjectsIntoRay()
-        inputs = (uid for uid in users['list'] if uid in groundTruth)
-        for batch in tqdm(batched(inputs, RAY_CHUNK_SIZE)):
-            results = ray.get([
-                friend_based_cf_predict.remote(
-                    uid, refs['eta'], refs['socialProximity'], refs['checkinMatrix'], pois['ref']
-                )
-                for uid in batch
-            ])
-            for uid, lid_scores in zip(batch, results):
-                np.copyto(SScores[uid, :], lid_scores)
+        print("Writing the result...")
+        for uid, lidScores in tqdm(zip(uids, results)):
+            np.copyto(SScores[uid, :], lidScores)
 
         saveModel(SScores, modelName, datasetName, f'S_{userCount}User')
     else:  # It should be loaded

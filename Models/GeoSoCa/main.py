@@ -1,4 +1,3 @@
-import ray
 import numpy as np
 from utils import logger
 from config import limitUsers
@@ -43,9 +42,6 @@ class GeoSoCaMain:
             logger(f'Limiting the number of users to {limitUsers} ...')
             users['count'] = limitUsers
             users['list'] = users['list'][:limitUsers]
-
-        # Load POI list to ray
-        pois['ref'] = ray.put(pois['list'])
 
         # Computing the final scores
         AKDEScores = geographicalCalculations(

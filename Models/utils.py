@@ -6,7 +6,7 @@ import scipy.sparse as sparse
 from collections import defaultdict
 from itertools import islice
 
-RAY_CHUNK_SIZE = 64
+CHUNK_SIZE = 32
 
 
 def batched(iterable, n):
