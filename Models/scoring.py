@@ -31,10 +31,18 @@ def parallelScoreCalculatorUSG(userId, evalParamsId, modelParamsId, listLimit):
     UScoresNormal, SScoresNormal, GScoresNormal = np.array(
         UScoresNormal), np.array(SScoresNormal), np.array(GScoresNormal)
 
-    overallScores = textToOperator(
-        fusion, [(1.0 - alpha - beta) * UScoresNormal, alpha * SScoresNormal, beta * GScoresNormal])
-    predicted = list(reversed(np.array(overallScores).argsort()))[:listLimit]
-    return predicted
+    overallScores = np.array(
+        textToOperator(
+            fusion,
+            [(1.0 - alpha - beta) * UScoresNormal,
+             alpha * SScoresNormal,
+             beta * GScoresNormal]
+        )
+    )
+    argSorted = overallScores.argsort()
+    predicted = list(reversed(argSorted))[:listLimit]
+    scores = list(reversed(overallScores[argSorted]))[:listLimit]
+    return list(zip(predicted, scores))
 
 
 def parallelScoreCalculatorGeoSoCa(userId, evalParamsId, modelParamsId, listLimit):
@@ -56,8 +64,10 @@ def parallelScoreCalculatorGeoSoCa(userId, evalParamsId, modelParamsId, listLimi
         if trainingMatrix[userId, lid] == 0 else -1
         for lid in poiList
     ])
-    predicted = list(reversed(overallScores.argsort()))[:listLimit]
-    return predicted
+    argSorted = overallScores.argsort()
+    predicted = list(reversed(argSorted))[:listLimit]
+    scores = list(reversed(overallScores[argSorted]))[:listLimit]
+    return list(zip(predicted, scores))
 
 
 def parallelScoreCalculatorLORE(userId, evalParamsId, modelParamsId, listLimit):
@@ -71,8 +81,10 @@ def parallelScoreCalculatorLORE(userId, evalParamsId, modelParamsId, listLimit):
     overallScores = np.array([textToOperator(fusion, [KDEScores[userId, lid], FCFScores[userId, lid], AMCScores[userId, lid]])
                      if (userId, lid) not in trainingMatrix else -1
                      for lid in poiList])
-    predicted = list(reversed(overallScores.argsort()))[:listLimit]
-    return predicted
+    argSorted = overallScores.argsort()
+    predicted = list(reversed(argSorted))[:listLimit]
+    scores = list(reversed(overallScores[argSorted]))[:listLimit]
+    return list(zip(predicted, scores))
 
 
 PARALLEL_FUNC_MAP = {
@@ -93,8 +105,12 @@ def calculateScores(modelName: str, evalParams: dict, modelParams: dict,
     args = [(uid, id(evalParams), id(modelParams), listLimit) for uid in usersInGroundTruth]
     results = run_parallel(PARALLEL_FUNC_MAP[modelName], args, CHUNK_SIZE)
     predictions = {
-        uid: preds
+        uid: [p[0] for p in preds]
         for uid, preds in zip(usersInGroundTruth, results)
     }
+    scores = {
+        uid: [s[1] for s in scores]
+        for uid, scores in zip(usersInGroundTruth, results)
+    }
 
-    return predictions
+    return predictions, scores

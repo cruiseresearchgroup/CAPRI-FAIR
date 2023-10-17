@@ -64,11 +64,20 @@ class GeoSoCaMain:
                       'groundTruth': groundTruth, 'fusion': params['fusion'], 'poiList': pois['list'],
                       'trainingMatrix': trainingMatrix, 'evaluation': params['evaluation']}
         modelParams = {'AKDE': AKDEScores, 'SC': SCScores, 'CC': CCScores}
-        predictions = calculateScores(
+        predictions, scores = calculateScores(
             modelName, evalParams, modelParams, listLimit)
 
         # Reranking
-        predictions = rerankPredictions(params['reranker'], predictions)
+        # Reranking
+        predictions = rerankPredictions(
+            params['reranker'],
+            predictions,
+            k=topK,
+            userCheckinCounts=userCheckinCounts,
+            poiCheckinCounts=poiCheckinCounts,
+            scalingFactor=10,
+            predictionScores=scores
+        )
 
         # Evaluation
         evaluator(

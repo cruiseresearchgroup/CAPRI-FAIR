@@ -18,8 +18,7 @@ models = {
 }
 
 # List of reranking methods
-# TODO: "WeightedSum" is not implemented yet
-rerankers = ["TopK", "Random"]
+rerankers = ["TopK", "Random", "ItemExposure"]
 
 # Key: Dataset name, Value: Covered Contexts
 datasets = {

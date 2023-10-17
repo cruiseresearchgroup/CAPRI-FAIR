@@ -24,8 +24,8 @@ class LOREMain:
 
         # Loading trainin items
         logger('Reading dataset instances ...')
-        sparseTrainingMatrix, trainingMatrix = readSparseTrainingData(
-            datasetFiles['train'], users['count'], pois['count'])
+        sparseTrainingMatrix, trainingMatrix, userCheckinCounts, poiCheckinCounts \
+            = readSparseTrainingData(datasetFiles['train'], users['count'], pois['count'])
         trainingCheckins = readTrainingCheckins(
             datasetFiles['checkins'], sparseTrainingMatrix)
         sortedTrainingCheckins = {uid: sorted(trainingCheckins[uid], key=lambda k: k[1])
@@ -58,14 +58,23 @@ class LOREMain:
                       'groundTruth': groundTruth, 'fusion': params['fusion'], 'poiList': pois['list'],
                       'trainingMatrix': trainingMatrix, 'evaluation': params['evaluation']}
         modelParams = {'FCF': FCFScores, 'KDE': KDEScores, 'AMC': AMCScores}
-        predictions = calculateScores(
+        predictions, scores = calculateScores(
             modelName, evalParams, modelParams, listLimit)
 
         # Reranking
-        predictions = rerankPredictions(params['reranker'], predictions)
+        predictions = rerankPredictions(
+            params['reranker'],
+            predictions,
+            k=topK,
+            userCheckinCounts=userCheckinCounts,
+            poiCheckinCounts=poiCheckinCounts,
+            scalingFactor=10,
+            predictionScores=scores
+        )
 
         # Evaluation
         evaluator(
             modelName, params['reranker'], params['datasetName'], evalParams,
-            modelParams, predictions
+            modelParams, predictions, userCheckinCounts=userCheckinCounts,
+            poiCheckinCounts=poiCheckinCounts
         )

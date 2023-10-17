@@ -23,7 +23,9 @@ def batched(iterable, n):
 
 def readSparseTrainingData(trainFile: str, numberOfUsers: int, numberOfPoI: int):
     """
-    Reads the training data from the file and returns a sparse matrix.
+    Reads the training data from the file and returns a sparse matrix. It also
+    returns 2 dataframes denoting the user and item checkin counts. The 2
+    dataframes will be used in computing global fairness metrics.
 
     Parameters
     ----------
@@ -38,17 +40,60 @@ def readSparseTrainingData(trainFile: str, numberOfUsers: int, numberOfPoI: int)
     -------
     sparseTrainingMatrix : sparse matrix
         The sparse matrix representation of the training data.
+    trainingTuples : set of tuples
+    userCheckinCounts : pd.DataFrame
+        The dataframe of user checkin counts, as well as the ratio of repeat
+        visits and whether or not they are distinguished as repeat or explore
+        users.
+    poiCheckinCounts : pd.DataFrame
+        The dataframe of item/POI checkin counts, as well as the distinction
+        between short-head (popular) and long-tail (unpopular) POIs.
     """
     print('Reading sparse training data...')
     trainingData = open(trainFile, 'r').readlines()
     sparseTrainingMatrix = sparse.dok_matrix((numberOfUsers, numberOfPoI))
     trainingTuples = set()
+    trainCheckinsByUser = defaultdict(list)
+    trainCheckinsByPOI = defaultdict(list)
+
     for dataInstance in trainingData:
         uid, lid, freq = dataInstance.strip().split()
         uid, lid, freq = int(uid), int(lid), int(freq)
+        trainCheckinsByUser[uid].extend([lid for _ in range(freq)])
+        trainCheckinsByPOI[lid].extend([uid for _ in range(freq)])
         sparseTrainingMatrix[uid, lid] = freq
         trainingTuples.add((uid, lid))
-    return sparseTrainingMatrix, trainingTuples
+
+    userCheckinCounts = [
+        (user, len(pois), len(set(pois)))
+        for user, pois in dict(trainCheckinsByUser).items()
+    ]
+    userCheckinCounts = pd.DataFrame(
+        userCheckinCounts,
+        columns=['user_id', 'checkins', 'unique_checkins']
+    ).set_index('user_id')
+    userCheckinCounts['repeat_ratio'] = (
+        (userCheckinCounts['checkins'] - userCheckinCounts['unique_checkins'])
+        / userCheckinCounts['checkins'])
+    med = userCheckinCounts['repeat_ratio'].median()
+    userCheckinCounts['repeat_user'] = (
+        userCheckinCounts['repeat_ratio'] >= med)
+
+    print(f"Setting threshold to median repeating POI ratio of {med:.1f}")
+
+    poiCheckinCounts = [
+        (poi, len(users))
+        for poi, users in dict(trainCheckinsByPOI).items()
+    ]
+    poiCheckinCounts = pd.DataFrame(
+        poiCheckinCounts, columns=['poi_id', 'checkins']
+    ).set_index('poi_id').sort_values(by='checkins', ascending=False)
+    med = poiCheckinCounts['checkins'].quantile([0.8]).values[0]
+    poiCheckinCounts['short_head'] = (poiCheckinCounts['checkins'] >= med)
+
+    print(f"Setting threshold to 80th prc. of POI visits of {med:.1f}")
+
+    return sparseTrainingMatrix, trainingTuples, userCheckinCounts, poiCheckinCounts
 
 
 def readTrainingData(trainFile: str, numberOfUsers: int, numberOfPoI: int, withFrequency: bool = False):
