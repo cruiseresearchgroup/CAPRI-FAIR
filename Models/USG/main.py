@@ -1,6 +1,6 @@
 import numpy as np
 from utils import logger
-from config import limitUsers
+from config import limitUsers, topK, listLimit
 from Evaluations.evaluator import evaluator
 from Data.readDataSizes import readDataSizes
 from Models.USG.powerLaw import powerLawCalculations
@@ -8,6 +8,7 @@ from Models.USG.userBased import userBasedCalculations
 from Models.USG.friendBased import friendBasedCalculations
 from Data.calculateActiveUsers import calculateActiveUsers
 from Models.utils import readTrainingData, readFriendData, readTestData, readPoiCoos
+from Models.scoring import calculateScores
 
 modelName = 'USG'
 
@@ -46,11 +47,16 @@ class USGMain:
         # Segmenting active users
         calculateActiveUsers(params['datasetName'], datasetFiles['train'])
 
-        # Evaluation
+        # Score calculation
+        # (Moving this before evaluation so that we can test reranking methods)
         evalParams = {'usersList': users['list'], 'usersCount': users['count'],
                       'groundTruth': groundTruth, 'fusion': params['fusion'], 'poiList': pois['list'],
                       'trainingMatrix': trainingMatrix, 'evaluation': params['evaluation']}
         modelParams = {'U': UScores, 'S': SScores, 'G': GScores}
+        predictions = calculateScores(
+            modelName, evalParams, modelParams, listLimit)
+
+        # Evaluation
         evaluator(modelName, params['datasetName'], evalParams, modelParams,
-                  userCheckinCounts=userCheckinCounts,
+                  predictions, userCheckinCounts=userCheckinCounts,
                   poiCheckinCounts=poiCheckinCounts)
