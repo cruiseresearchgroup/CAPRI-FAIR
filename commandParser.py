@@ -1,9 +1,10 @@
 from utils import logger
 import inquirer
 # from inquirer import prompt
-from config import datasets, models, fusions, evaluationMetrics
+from config import datasets, models, rerankers, fusions, evaluationMetrics
 
 modelChoices = []
+rerankingChoices = []
 fusionChoices = []
 datasetChoices = []
 evaluatorChoices = []
@@ -24,6 +25,9 @@ def initChoices():
     # Preparing model items
     for model in models:
         modelChoices.append(model)
+    # Preparing reranking items
+    for reranker in rerankers:
+        rerankingChoices.append(reranker)
     # Preparing dataset items
     for dataset in datasets:
         datasetChoices.append(dataset)
@@ -55,6 +59,10 @@ def interactiveCommandForm():
         inquirer.List('Model',
             message="Choose the model you need:",
             choices=modelChoices
+        ),
+        inquirer.List('Reranking',
+            message="Choose the reranking method you need:",
+            choices=rerankingChoices
         ),
         inquirer.List('Dataset',
             message="Choose the dataset you need:",

@@ -70,8 +70,9 @@ def overallScoreCalculator(modelName: str, userId, evalParams, modelParams):
     return np.array(overallScores)
 
 
-def evaluator(modelName: str, datasetName: str, evalParams: dict, modelParams: dict,
-              predictions: dict, userCheckinCounts = None, poiCheckinCounts = None):
+def evaluator(modelName: str, rerankerName: str, datasetName: str,
+              evalParams: dict, modelParams: dict, predictions: dict,
+              userCheckinCounts = None, poiCheckinCounts = None):
     """
     Evaluate the model with the given parameters and return the evaluation metrics
 
@@ -79,6 +80,8 @@ def evaluator(modelName: str, datasetName: str, evalParams: dict, modelParams: d
     ----------
     modelName : str
         Name of the model to be evaluated
+    rerankerName : str
+        Name of the reranking method employed
     datasetName : str
         Name of the dataset to be evaluated
     evalParams : dict
@@ -105,7 +108,7 @@ def evaluator(modelName: str, datasetName: str, evalParams: dict, modelParams: d
     precision, recall, mean_ap, ndcg = [], [], [], []
 
     # Add caching policy (prevent a similar setting to be executed again)
-    fileName = f'{modelName}_{datasetName}_{fusion}_{usersCount}user_top{topK}_limit{listLimit}'
+    fileName = f'{modelName}_{rerankerName}_{datasetName}_{fusion}_{usersCount}user_top{topK}_limit{listLimit}'
     calculatedResults = open(f"{outputsDir}/Rec_{fileName}.txt", 'w+')
 
     # Initializing evaluation dataframe

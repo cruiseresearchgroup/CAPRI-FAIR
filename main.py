@@ -20,6 +20,7 @@ def __init__():
             return
         # Initializing parameters
         parameters = {
+            "reranker": userInputs['Reranking'],
             "fusion": userInputs['Fusion'],
             "ignored": userInputs['Ignored'],
             "datasetName": userInputs['Dataset'],

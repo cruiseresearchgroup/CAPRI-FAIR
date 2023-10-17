@@ -7,6 +7,7 @@ from Models.USG.powerLaw import powerLawCalculations
 from Models.USG.userBased import userBasedCalculations
 from Models.USG.friendBased import friendBasedCalculations
 from Data.calculateActiveUsers import calculateActiveUsers
+from Models.Reranking import rerankPredictions
 from Models.utils import readTrainingData, readFriendData, readTestData, readPoiCoos
 from Models.scoring import calculateScores
 
@@ -56,7 +57,10 @@ class USGMain:
         predictions = calculateScores(
             modelName, evalParams, modelParams, listLimit)
 
+        # Reranking
+        predictions = rerankPredictions(params['reranker'], predictions)
+
         # Evaluation
-        evaluator(modelName, params['datasetName'], evalParams, modelParams,
+        evaluator(modelName, params['reranker'], params['datasetName'], evalParams, modelParams,
                   predictions, userCheckinCounts=userCheckinCounts,
                   poiCheckinCounts=poiCheckinCounts)

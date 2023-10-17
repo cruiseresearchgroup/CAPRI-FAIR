@@ -17,6 +17,10 @@ models = {
     "USG": ["Interaction", "Social", "Geographical"],
 }
 
+# List of reranking methods
+# TODO: "WeightedSum" is not implemented yet
+rerankers = ["TopK", "Random"]
+
 # Key: Dataset name, Value: Covered Contexts
 datasets = {
     "Gowalla": ["Geographical", "Social", "Temporal", "Interaction"],
