@@ -1,6 +1,6 @@
 import numpy as np
 from utils import logger
-from config import limitUsers, topK, listLimit
+from config import limitUsers, topK, listLimit, itemExposureScalingFactor
 from Evaluations.evaluator import evaluator
 from Data.readDataSizes import readDataSizes
 from Models.USG.powerLaw import powerLawCalculations
@@ -64,7 +64,7 @@ class USGMain:
             k=topK,
             userCheckinCounts=userCheckinCounts,
             poiCheckinCounts=poiCheckinCounts,
-            scalingFactor=10,
+            scalingFactor=itemExposureScalingFactor,
             predictionScores=scores
         )
 

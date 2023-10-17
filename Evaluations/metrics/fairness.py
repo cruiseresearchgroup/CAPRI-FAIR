@@ -43,10 +43,14 @@ def gceGlobalItemFairness(ground_truth, predictions, k, checkin_counts):
     rg_i = rg_i = Counter([x for u in ground_truth.keys() for x in predictions[u]])
     rg_i = pd.DataFrame(rg_i.items(), columns=['poi_id', 'rg_i']).set_index('poi_id')
     rg_i = rg_i.join(checkin_counts[['checkins', 'short_head']], how='right').fillna(0)
+    short_head_proportion = rg_i['short_head'].mean()
     Z_i = rg_i['rg_i'].sum()
     p_mi = rg_i[['rg_i', 'short_head']].groupby('short_head').sum() / Z_i
     rg_i_fair = len(checkin_counts) / total_coverage_realestate
-    p_mi['rg_fair'] = [rg_i_fair, rg_i_fair]
+    p_mi['rg_fair'] = pd.Series(
+        [(1 - short_head_proportion), short_head_proportion],
+        index=[False, True]
+    )
     print("[[ Item coverage ratios ]]")
     print(p_mi)
     beta = 2

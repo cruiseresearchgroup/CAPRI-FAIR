@@ -9,6 +9,7 @@ topK = 10  # Top-k items to evaluate (default: 10)
 limitUsers = -1  # Limit the number of users (default: -1)
 listLimit = 15  # Limit the length of recommendation list (default: 10)
 activeUsersPercentage = [5, 20]  # Calculate [n] percents of users as active
+itemExposureScalingFactor = 5 # Scaling factor for the item exposure reranking
 
 # Key: Model name, Value: Covered Contexts
 models = {
