@@ -2,8 +2,8 @@ import numpy as np
 from tqdm import tqdm
 from utils import logger
 from config import USGDict
-from Models.utils import loadModel, saveModel, CHUNK_SIZE
-from Models.parallel_utils import run_parallel
+from Models.utils import loadModel, saveModel
+from Models.parallel_utils import run_parallel, CHUNK_SIZE
 from Models.USG.lib.FriendBasedCF import FriendBasedCF, friend_based_cf_predict
 
 modelName = 'USG'

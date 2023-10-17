@@ -61,6 +61,8 @@ class USGMain:
         predictions = rerankPredictions(params['reranker'], predictions)
 
         # Evaluation
-        evaluator(modelName, params['reranker'], params['datasetName'], evalParams, modelParams,
-                  predictions, userCheckinCounts=userCheckinCounts,
-                  poiCheckinCounts=poiCheckinCounts)
+        evaluator(
+            modelName, params['reranker'], params['datasetName'], evalParams,
+            modelParams, predictions, userCheckinCounts=userCheckinCounts,
+            poiCheckinCounts=poiCheckinCounts
+        )

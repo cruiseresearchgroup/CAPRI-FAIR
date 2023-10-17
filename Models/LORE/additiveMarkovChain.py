@@ -1,9 +1,13 @@
 import numpy as np
+from tqdm import tqdm
 from utils import logger
 from config import LoreDict
 from Models.utils import loadModel, saveModel
-from Models.LORE.lib.AdditiveMarkovChain import AdditiveMarkovChain
-
+from Models.parallel_utils import run_parallel, CHUNK_SIZE
+from Models.LORE.lib.AdditiveMarkovChain import (
+    AdditiveMarkovChain,
+    additivemarkovchain_predict
+)
 
 modelName = 'LORE'
 
@@ -32,7 +36,6 @@ def additiveMarkovChainCalculations(datasetName: str, users: dict, pois: dict, s
     """
     # Initializing parameters
     userCount = users['count']
-    logDuration = 1 if userCount < 20 else 10
     alpha, deltaT = LoreDict['alpha'], LoreDict['deltaT']
     AMCScores = np.zeros((users['count'], pois['count']))
     # Checking for existing model
@@ -44,13 +47,18 @@ def additiveMarkovChainCalculations(datasetName: str, users: dict, pois: dict, s
         # Calculating AMC scores
         # TODO: We may be able to load the model from disk
         AMC.buildLocationToLocationTransitionGraph(sortedTrainingCheckins)
-        for counter, uid in enumerate(users['list']):
-            # Adding log to console
-            if (counter % logDuration == 0):
-                print(f'User#{counter} processed ...')
-            if uid in groundTruth:
-                for lid in pois['list']:
-                    AMCScores[uid, lid] = AMC.predict(uid, lid)
+
+        print("Now, predicting the model for each user ...")
+        uids = (uid for uid in users['list'] if uid in groundTruth)
+        args = [(id(AMC), uid, pois['count']) for uid in uids]
+
+        with np.errstate(under='ignore'):
+            results = run_parallel(additivemarkovchain_predict, args, CHUNK_SIZE)
+
+        print("Writing the result...")
+        for uid, lidScores in tqdm(zip(uids, results)):
+            np.copyto(AMCScores[uid, :], lidScores)
+
         saveModel(AMCScores, modelName, datasetName,
                   f'AMC_{userCount}User')
     else:  # It should be loaded

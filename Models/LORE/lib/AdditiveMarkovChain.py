@@ -1,3 +1,4 @@
+import ctypes
 import time
 import numpy as np
 from utils import logger
@@ -50,3 +51,19 @@ class AdditiveMarkovChain(object):
             denominator = np.sum([self.W(i, n) for i in range(len(self.S[u]))])
             return 1.0 * numerator / denominator
         return 1.0
+
+
+def additivemarkovchain_predict(modelId, u, poisCount):
+    """
+    Since the predict() method of this model is so slow, this function aids in
+    parallelizing it.
+
+    Given the Python object ID of the Markov Chain model and a user ID,
+    compute the scores of all the POIs.
+    """
+    model = ctypes.cast(modelId, ctypes.py_object).value
+    results = np.array([
+        model.predict(u, l)
+        for l in range(poisCount)
+    ])
+    return results

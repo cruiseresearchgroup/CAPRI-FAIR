@@ -1,7 +1,9 @@
 import numpy as np
+from tqdm import tqdm
 from utils import logger
 from Models.utils import loadModel, saveModel
-from Models.LORE.lib.KernelDensityEstimation import KernelDensityEstimation
+from Models.parallel_utils import run_parallel, CHUNK_SIZE
+from Models.LORE.lib.KernelDensityEstimation import KernelDensityEstimation, kde_predict
 
 
 modelName = 'LORE'
@@ -33,7 +35,6 @@ def kernelDensityEstimationCalculations(datasetName: str, users: dict, pois: dic
     """
     # Initializing parameters
     userCount = users['count']
-    logDuration = 1 if userCount < 20 else 10
     KDEScores = np.zeros((users['count'], pois['count']))
     # Checking for existing model
     logger('Preparing Kernel Density Estimation matrix ...')
@@ -44,13 +45,18 @@ def kernelDensityEstimationCalculations(datasetName: str, users: dict, pois: dic
         # Calculating KDE scores
         # TODO: We may be able to load the model from disk
         KDE.precomputeKernelParameters(sparseTrainingMatrix, poiCoos)
-        for counter, uid in enumerate(users['list']):
-            # Adding log to console
-            if (counter % logDuration == 0):
-                print(f'User#{counter} processed ...')
-            if uid in groundTruth:
-                for lid in pois['list']:
-                    KDEScores[uid, lid] = KDE.predict(uid, lid)
+
+        print("Now, predicting the model for each user ...")
+        uids = (uid for uid in users['list'] if uid in groundTruth)
+        args = [(id(KDE), uid) for uid in uids]
+
+        with np.errstate(under='ignore'):
+            results = run_parallel(kde_predict, args, CHUNK_SIZE)
+
+        print("Writing the result...")
+        for uid, lidScores in tqdm(zip(uids, results)):
+            np.copyto(KDEScores[uid, :], lidScores)
+
         saveModel(KDEScores, modelName, datasetName,
                   f'KDE_{userCount}User')
     else:  # It should be loaded

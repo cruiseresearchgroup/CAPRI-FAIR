@@ -1,3 +1,4 @@
+import ctypes
 import time
 import math
 import numpy as np
@@ -41,3 +42,20 @@ class KernelDensityEstimation(object):
                  for lat_i, lng_i in self.L[u]]
             return sum(self.K(np.array(x))) / len(self.L[u]) / (self.bw[u] ** 2)
         return 1.0
+
+
+def kde_predict(modelId, u):
+    """
+    Since the predict() method of this model is so slow, this function aids in
+    parallelizing it.
+
+    Given the Python object ID of the KDE model and a user ID,
+    compute the scores of all the POIs.
+    """
+    model = ctypes.cast(modelId, ctypes.py_object).value
+    poisCount = len(model.poiCoos)
+    results = np.array([
+        model.predict(u, l)
+        for l in range(poisCount)
+    ])
+    return results

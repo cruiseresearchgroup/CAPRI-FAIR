@@ -1,7 +1,9 @@
 import numpy as np
+from tqdm import tqdm
 from utils import logger
 from Models.utils import loadModel, saveModel
-from Models.LORE.lib.FriendBasedCF import FriendBasedCF
+from Models.parallel_utils import run_parallel, CHUNK_SIZE
+from Models.LORE.lib.FriendBasedCF import FriendBasedCF, friend_based_cf_predict
 
 modelName = 'LORE'
 
@@ -46,13 +48,18 @@ def friendBasedCalculations(datasetName: str, users: dict, pois: dict, socialRel
         # TODO: We may be able to load the model from disk
         FCF.friendsSimilarityCalculation(
             socialRelations, poiCoos, sparseTrainingMatrix)
-        for counter, uid in enumerate(users['list']):
-            # Adding log to console
-            if (counter % logDuration == 0):
-                print(f'User#{counter} processed ...')
-            if uid in groundTruth:
-                for lid in pois['list']:
-                    FCFScores[uid, lid] = FCF.predict(uid, lid)
+
+        print("Now, predicting the model for each user ...")
+        uids = (uid for uid in users['list'] if uid in groundTruth)
+        args = [(id(FCF), uid) for uid in uids]
+
+        with np.errstate(under='ignore'):
+            results = run_parallel(friend_based_cf_predict, args, CHUNK_SIZE)
+
+        print("Writing the result...")
+        for uid, lidScores in tqdm(zip(uids, results)):
+            np.copyto(FCFScores[uid, :], lidScores)
+
         saveModel(FCFScores, modelName, datasetName,
                   f'FCF_{userCount}User')
     else:  # It should be loaded

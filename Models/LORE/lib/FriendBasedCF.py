@@ -1,3 +1,4 @@
+import ctypes
 import time
 import math
 import numpy as np
@@ -58,3 +59,20 @@ class FriendBasedCF(object):
                 [weight for k, weight in self.socialProximity[i]])
             return numerator / denominator
         return 0.0
+
+
+def friend_based_cf_predict(modelId, u):
+    """
+    Since the predict() method of this model is so slow, this function aids in
+    parallelizing it.
+
+    Given the Python object ID of the CF model and a user ID,
+    compute the scores of all the POIs.
+    """
+    model = ctypes.cast(modelId, ctypes.py_object).value
+    poisCount = model.sparseCheckinMatrix.shape[1]
+    results = np.array([
+        model.predict(u, l)
+        for l in range(poisCount)
+    ])
+    return results

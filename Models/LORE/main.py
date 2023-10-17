@@ -1,6 +1,6 @@
 import numpy as np
 from utils import logger
-from config import limitUsers
+from config import limitUsers, topK, listLimit
 from Evaluations.evaluator import evaluator
 from Data.readDataSizes import readDataSizes
 from Data.calculateActiveUsers import calculateActiveUsers
@@ -8,6 +8,8 @@ from Models.LORE.friendBased import friendBasedCalculations
 from Models.LORE.additiveMarkovChain import additiveMarkovChainCalculations
 from Models.LORE.kernelDensityEstimation import kernelDensityEstimationCalculations
 from Models.utils import readFriendData, readPoiCoos, readSparseTrainingData, readTestData, readTrainingCheckins
+from Models.Reranking import rerankPredictions
+from Models.scoring import calculateScores
 
 modelName = 'LORE'
 
@@ -50,9 +52,20 @@ class LOREMain:
         # Segmenting active users
         calculateActiveUsers(params['datasetName'], datasetFiles['train'])
 
-        # Evaluation
+        # Score calculation
+        # (Moving this before evaluation so that we can test reranking methods)
         evalParams = {'usersList': users['list'], 'usersCount': users['count'],
                       'groundTruth': groundTruth, 'fusion': params['fusion'], 'poiList': pois['list'],
                       'trainingMatrix': trainingMatrix, 'evaluation': params['evaluation']}
         modelParams = {'FCF': FCFScores, 'KDE': KDEScores, 'AMC': AMCScores}
-        evaluator(modelName, params['datasetName'], evalParams, modelParams)
+        predictions = calculateScores(
+            modelName, evalParams, modelParams, listLimit)
+
+        # Reranking
+        predictions = rerankPredictions(params['reranker'], predictions)
+
+        # Evaluation
+        evaluator(
+            modelName, params['reranker'], params['datasetName'], evalParams,
+            modelParams, predictions
+        )
