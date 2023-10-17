@@ -1,13 +1,15 @@
 import numpy as np
 from utils import logger
-from config import limitUsers
+from config import limitUsers, topK, listLimit
 from Evaluations.evaluator import evaluator
 from Data.readDataSizes import readDataSizes
 from Models.GeoSoCa.social import socialCalculations
 from Data.calculateActiveUsers import calculateActiveUsers
 from Models.GeoSoCa.categorical import categoricalCalculations
 from Models.GeoSoCa.geographical import geographicalCalculations
+from Models.Reranking import rerankPredictions
 from Models.utils import readPoiCoos, readTestData, readCategoryData, readTrainingData, readFriendData
+from Models.scoring import calculateScores
 
 modelName = 'GeoSoCa'
 
@@ -56,11 +58,21 @@ class GeoSoCaMain:
         # Segmenting active users
         calculateActiveUsers(params['datasetName'], datasetFiles['train'])
 
-        # Evaluation
+        # Score calculation
+        # (Moving this before evaluation so that we can test reranking methods)
         evalParams = {'usersList': users['list'], 'usersCount': users['count'],
                       'groundTruth': groundTruth, 'fusion': params['fusion'], 'poiList': pois['list'],
                       'trainingMatrix': trainingMatrix, 'evaluation': params['evaluation']}
         modelParams = {'AKDE': AKDEScores, 'SC': SCScores, 'CC': CCScores}
-        evaluator(modelName, params['datasetName'], evalParams, modelParams,
-                  userCheckinCounts=userCheckinCounts,
-                  poiCheckinCounts=poiCheckinCounts)
+        predictions = calculateScores(
+            modelName, evalParams, modelParams, listLimit)
+
+        # Reranking
+        predictions = rerankPredictions(params['reranker'], predictions)
+
+        # Evaluation
+        evaluator(
+            modelName, params['reranker'], params['datasetName'], evalParams,
+            modelParams, predictions, userCheckinCounts=userCheckinCounts,
+            poiCheckinCounts=poiCheckinCounts
+        )
