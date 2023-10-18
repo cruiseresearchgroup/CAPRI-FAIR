@@ -49,7 +49,7 @@ def additiveMarkovChainCalculations(datasetName: str, users: dict, pois: dict, s
         AMC.buildLocationToLocationTransitionGraph(sortedTrainingCheckins)
 
         print("Now, predicting the model for each user ...")
-        uids = (uid for uid in users['list'] if uid in groundTruth)
+        uids = [uid for uid in users['list'] if uid in groundTruth]
         args = [(id(AMC), uid, pois['count']) for uid in uids]
 
         with np.errstate(under='ignore'):

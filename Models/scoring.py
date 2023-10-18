@@ -109,7 +109,7 @@ def calculateScores(modelName: str, evalParams: dict, modelParams: dict,
     """
 
     usersList, groundTruth = evalParams['usersList'], evalParams['groundTruth']
-    usersInGroundTruth = list((u for u in usersList if u in groundTruth))
+    usersInGroundTruth = [u for u in usersList if u in groundTruth]
     args = [(uid, id(evalParams), id(modelParams), listLimit) for uid in usersInGroundTruth]
     results = run_parallel(PARALLEL_FUNC_MAP[modelName], args, CHUNK_SIZE)
     predictions = {

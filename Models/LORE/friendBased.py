@@ -50,7 +50,7 @@ def friendBasedCalculations(datasetName: str, users: dict, pois: dict, socialRel
             socialRelations, poiCoos, sparseTrainingMatrix)
 
         print("Now, predicting the model for each user ...")
-        uids = (uid for uid in users['list'] if uid in groundTruth)
+        uids = [uid for uid in users['list'] if uid in groundTruth]
         args = [(id(FCF), uid) for uid in uids]
 
         with np.errstate(under='ignore'):

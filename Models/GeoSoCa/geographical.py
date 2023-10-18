@@ -56,7 +56,7 @@ def geographicalCalculations(datasetName: str, users: dict, pois: dict, poiCoos:
         AKDE.precomputeKernelParameters(trainingMatrix, poiCoos)
 
         print("Now, predicting the model for each user ...")
-        uids = (uid for uid in users['list'] if uid in groundTruth)
+        uids = [uid for uid in users['list'] if uid in groundTruth]
         args = [(id(AKDE), uid) for uid in uids]
 
         with np.errstate(under='ignore'):

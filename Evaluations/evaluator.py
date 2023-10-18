@@ -115,14 +115,6 @@ def evaluator(modelName: str, rerankerName: str, datasetName: str,
     evalDataFrame = []
     print(f"Evaluation List: {evaluationList}")
 
-    # # Calculate the predictions dictionary (parallel computation)
-    # args = [(uid, id(evalParams), id(modelParams), listLimit) for uid in usersInGroundTruth]
-    # results = run_parallel(PARALLEL_FUNC_MAP[modelName], args, CHUNK_SIZE)
-    # predictions = {
-    #     uid: preds
-    #     for uid, preds in zip(usersInGroundTruth, results)
-    # }
-
     # Iterating over the users
     for counter, userId in tqdm(enumerate(usersInGroundTruth)):
         predicted = predictions[userId]

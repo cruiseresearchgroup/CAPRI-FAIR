@@ -47,7 +47,7 @@ def kernelDensityEstimationCalculations(datasetName: str, users: dict, pois: dic
         KDE.precomputeKernelParameters(sparseTrainingMatrix, poiCoos)
 
         print("Now, predicting the model for each user ...")
-        uids = (uid for uid in users['list'] if uid in groundTruth)
+        uids = [uid for uid in users['list'] if uid in groundTruth]
         args = [(id(KDE), uid) for uid in uids]
 
         with np.errstate(under='ignore'):

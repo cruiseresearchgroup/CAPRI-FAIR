@@ -25,11 +25,11 @@ def friendBasedCalculations(datasetName: str, users: dict, pois: dict, socialRel
         S.friendsSimilarityCalculation(socialRelations, trainingMatrix)
 
         print("Now, predicting the model for each user ...")
-        uids = (uid for uid in users['list'] if uid in groundTruth)
+        uids = [uid for uid in users['list'] if uid in groundTruth]
         args = [(id(S), uid) for uid in uids]
 
-        with np.errstate(under='ignore'):
-            results = run_parallel(friend_based_cf_predict, args, CHUNK_SIZE)
+        # with np.errstate(under='ignore'):
+        results = run_parallel(friend_based_cf_predict, args, CHUNK_SIZE)
 
         print("Writing the result...")
         for uid, lidScores in tqdm(zip(uids, results)):

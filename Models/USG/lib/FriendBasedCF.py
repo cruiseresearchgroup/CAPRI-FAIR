@@ -32,6 +32,7 @@ class FriendBasedCF(object):
                         self.socialProximity[uid].append(
                             [fid, jaccardFriend, jaccardCheckin])
         elapsedTime = '{:.2f}'.format(time.time() - startTime)
+        self.socialProximity = dict(self.socialProximity)
         logger(f'Finished in {elapsedTime} seconds.')
 
     def predict(self, i, j):
@@ -42,7 +43,7 @@ class FriendBasedCF(object):
         return 0.0
 
 
-def friend_based_cf_predict(akdeID, u):
+def friend_based_cf_predict(modelId, u):
     """
     Since the predict() method of this model is so slow, this function aids in
     parallelizing it.
@@ -50,7 +51,7 @@ def friend_based_cf_predict(akdeID, u):
     Given the Python object ID of the CF model and a user ID,
     compute the scores of all the POIs.
     """
-    model = ctypes.cast(akdeID, ctypes.py_object).value
+    model = ctypes.cast(modelId, ctypes.py_object).value
     poisCount = model.checkinMatrix.shape[1]
     results = np.array([
         model.predict(u, l)
