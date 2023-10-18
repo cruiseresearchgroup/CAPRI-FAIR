@@ -4,3 +4,4 @@ from . import powerLaw
 from . import userBased
 from . import savedModels
 from . import friendBased
+from . import itemExposure

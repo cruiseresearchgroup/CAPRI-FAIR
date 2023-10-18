@@ -4,6 +4,7 @@ from config import limitUsers, topK, listLimit, itemExposureScalingFactor
 from Evaluations.evaluator import evaluator
 from Data.readDataSizes import readDataSizes
 from Models.USG.powerLaw import powerLawCalculations
+from Models.USG.itemExposure import ItemExposureCalculations
 from Models.USG.userBased import userBasedCalculations
 from Models.USG.friendBased import friendBasedCalculations
 from Data.calculateActiveUsers import calculateActiveUsers
@@ -44,6 +45,8 @@ class USGMain:
             params['datasetName'], users, pois, socialRelations, trainingMatrix, groundTruth)
         GScores = powerLawCalculations(
             params['datasetName'], users, pois, trainingMatrix, poiCoos, groundTruth)
+        IScores = ItemExposureCalculations(
+            params['datasetName'], users, pois, poiCheckinCounts, groundTruth)
 
         # Segmenting active users
         calculateActiveUsers(params['datasetName'], datasetFiles['train'])
@@ -54,7 +57,7 @@ class USGMain:
                       'groundTruth': groundTruth, 'fusion': params['fusion'], 'poiList': pois['list'],
                       'trainingMatrix': trainingMatrix, 'evaluation': params['evaluation'],
                       'fusionWeights': params['fusionWeights']}
-        modelParams = {'U': UScores, 'S': SScores, 'G': GScores}
+        modelParams = {'U': UScores, 'S': SScores, 'G': GScores, 'I': IScores}
         predictions, scores = calculateScores(
             modelName, evalParams, modelParams, listLimit)
 

@@ -17,7 +17,7 @@ def parallelScoreCalculatorUSG(userId, evalParamsId, modelParamsId, listLimit):
 
     fusion, poiList, trainingMatrix, fusionWeights = evalParams['fusion'], evalParams['poiList'], evalParams['trainingMatrix'], evalParams['fusionWeights']
     alpha, beta = USGDict['alpha'], USGDict['beta']
-    UScores, SScores, GScores = modelParams['U'], modelParams['S'], modelParams['G']
+    UScores, SScores, GScores, IScores = modelParams['U'], modelParams['S'], modelParams['G'], modelParams['I']
 
     UScoresNormal = normalize([UScores[userId, lid]
                                if trainingMatrix[userId, lid] == 0 else -1
@@ -28,15 +28,21 @@ def parallelScoreCalculatorUSG(userId, evalParamsId, modelParamsId, listLimit):
     GScoresNormal = normalize([GScores[userId, lid]
                                if trainingMatrix[userId, lid] == 0 else -1
                                for lid in poiList])
-    UScoresNormal, SScoresNormal, GScoresNormal = np.array(
-        UScoresNormal), np.array(SScoresNormal), np.array(GScoresNormal)
+    IScoresNormal = normalize([IScores[userId, lid]
+                               if trainingMatrix[userId, lid] == 0 else -1
+                               for lid in poiList])
+    UScoresNormal, SScoresNormal, GScoresNormal, IScoresNormal = (
+        np.array(UScoresNormal), np.array(SScoresNormal),
+        np.array(GScoresNormal), np.array(IScoresNormal)
+    )
 
     overallScores = np.array(
         textToOperator(
             fusion,
             [(1.0 - alpha - beta) * UScoresNormal,
              alpha * SScoresNormal,
-             beta * GScoresNormal],
+             beta * GScoresNormal,
+             0.5 * IScoresNormal],
             fusionWeights
         )
     )
