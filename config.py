@@ -30,7 +30,8 @@ datasets = {
 
 # An array of selected operations
 # TODO: "WeightedSum" is not implemented yet
-fusions = ["Product", "Sum"]
+fusions = ["Product", "Sum", "WeightedSum"]
+fusionWeights = [0.5, 0.3, 0.2]
 
 # List of evaluation metrics
 evaluationMetrics = ["Precision", "Recall", "mAP", "NDCG"]

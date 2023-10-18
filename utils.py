@@ -38,7 +38,7 @@ def logger(message: str, logLevel: logLevelType = "info", noConsolePrint: bool =
         logging.info(printMessage)
 
 
-def textToOperator(operator: str, operands: list):
+def textToOperator(operator: str, operands: list, weights: list | None = None):
     """
     Converts a pre-defined text into operator
     Parameters
@@ -47,8 +47,14 @@ def textToOperator(operator: str, operands: list):
         A message to be shown in both logger file and command line
         example: "Sum"
     """
+    if operator != 'WeightedSum':
+        weights = [1] * len(operands)
+    else:
+        if weights is None:
+            raise ValueError("Weights missing")
+
     # Final result initialized by effect-less value
     result = 1 if operator == 'Product' else 0
-    for operand in operands:
-        result = operators[operator](result, operand)
+    for weight, operand in zip(weights, operands):
+        result = operators[operator](result, weight * operand)
     return result

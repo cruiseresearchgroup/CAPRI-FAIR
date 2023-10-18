@@ -1,5 +1,6 @@
 import logging
 from utils import logger
+from config import fusionWeights
 from commandParser import getUserChoices
 from Data.loadDatasetFiles import loadDatasetFiles
 
@@ -25,6 +26,7 @@ def __init__():
             "ignored": userInputs['Ignored'],
             "datasetName": userInputs['Dataset'],
             "evaluation": userInputs['Evaluation'],
+            "fusionWeights": fusionWeights
         }
         logger(f'Processing parameters: {parameters}', 'info', True)
         # Dynamically loading the model

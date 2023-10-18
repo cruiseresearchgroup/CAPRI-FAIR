@@ -15,7 +15,7 @@ def parallelScoreCalculatorUSG(userId, evalParamsId, modelParamsId, listLimit):
     evalParams = ctypes.cast(evalParamsId, ctypes.py_object).value
     modelParams = ctypes.cast(modelParamsId, ctypes.py_object).value
 
-    fusion, poiList, trainingMatrix = evalParams['fusion'], evalParams['poiList'], evalParams['trainingMatrix']
+    fusion, poiList, trainingMatrix, fusionWeights = evalParams['fusion'], evalParams['poiList'], evalParams['trainingMatrix'], evalParams['fusionWeights']
     alpha, beta = USGDict['alpha'], USGDict['beta']
     UScores, SScores, GScores = modelParams['U'], modelParams['S'], modelParams['G']
 
@@ -36,7 +36,8 @@ def parallelScoreCalculatorUSG(userId, evalParamsId, modelParamsId, listLimit):
             fusion,
             [(1.0 - alpha - beta) * UScoresNormal,
              alpha * SScoresNormal,
-             beta * GScoresNormal]
+             beta * GScoresNormal],
+            fusionWeights
         )
     )
     argSorted = overallScores.argsort()
@@ -50,7 +51,7 @@ def parallelScoreCalculatorGeoSoCa(userId, evalParamsId, modelParamsId, listLimi
     evalParams = ctypes.cast(evalParamsId, ctypes.py_object).value
     modelParams = ctypes.cast(modelParamsId, ctypes.py_object).value
 
-    fusion, poiList, trainingMatrix = evalParams['fusion'], evalParams['poiList'], evalParams['trainingMatrix']
+    fusion, poiList, trainingMatrix, fusionWeights = evalParams['fusion'], evalParams['poiList'], evalParams['trainingMatrix'], evalParams['fusionWeights']
     AKDEScores, SCScores, CCScores = modelParams['AKDE'], modelParams['SC'], modelParams['CC']
 
     # Check if Category is skipped
@@ -59,7 +60,8 @@ def parallelScoreCalculatorGeoSoCa(userId, evalParamsId, modelParamsId, listLimi
             fusion,
             [AKDEScores[userId, lid], SCScores[userId, lid], CCScores[userId, lid]]
                 if not (CCScores is None)
-                else [AKDEScores[userId, lid], SCScores[userId, lid]]
+                else [AKDEScores[userId, lid], SCScores[userId, lid]],
+            fusionWeights
         )
         if trainingMatrix[userId, lid] == 0 else -1
         for lid in poiList
@@ -75,12 +77,18 @@ def parallelScoreCalculatorLORE(userId, evalParamsId, modelParamsId, listLimit):
     evalParams = ctypes.cast(evalParamsId, ctypes.py_object).value
     modelParams = ctypes.cast(modelParamsId, ctypes.py_object).value
 
-    fusion, poiList, trainingMatrix = evalParams['fusion'], evalParams['poiList'], evalParams['trainingMatrix']
+    fusion, poiList, trainingMatrix, fusionWeights = evalParams['fusion'], evalParams['poiList'], evalParams['trainingMatrix'], evalParams['fusionWeights']
     KDEScores, FCFScores, AMCScores = modelParams['KDE'], modelParams['FCF'], modelParams['AMC']
 
-    overallScores = np.array([textToOperator(fusion, [KDEScores[userId, lid], FCFScores[userId, lid], AMCScores[userId, lid]])
-                     if (userId, lid) not in trainingMatrix else -1
-                     for lid in poiList])
+    overallScores = np.array([
+        textToOperator(
+            fusion,
+            [KDEScores[userId, lid], FCFScores[userId, lid], AMCScores[userId, lid]],
+            fusionWeights
+        )
+        if (userId, lid) not in trainingMatrix else -1
+        for lid in poiList
+    ])
     argSorted = overallScores.argsort()
     predicted = list(reversed(argSorted))[:listLimit]
     scores = list(reversed(overallScores[argSorted]))[:listLimit]

@@ -62,7 +62,8 @@ class GeoSoCaMain:
         # (Moving this before evaluation so that we can test reranking methods)
         evalParams = {'usersList': users['list'], 'usersCount': users['count'],
                       'groundTruth': groundTruth, 'fusion': params['fusion'], 'poiList': pois['list'],
-                      'trainingMatrix': trainingMatrix, 'evaluation': params['evaluation']}
+                      'trainingMatrix': trainingMatrix, 'evaluation': params['evaluation'],
+                      'fusionWeights': params['fusionWeights']}
         modelParams = {'AKDE': AKDEScores, 'SC': SCScores, 'CC': CCScores}
         predictions, scores = calculateScores(
             modelName, evalParams, modelParams, listLimit)
