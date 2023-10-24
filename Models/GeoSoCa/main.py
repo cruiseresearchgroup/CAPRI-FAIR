@@ -38,6 +38,8 @@ class GeoSoCaMain:
         if not skipCategory:
             poiCategoryMatrix = readCategoryData(
                 datasetFiles['poiCategories'], categories['count'], pois['count'])
+        averageLocation = computeAverageLocation(
+            datasetFiles['train'], users['count'], pois['count'], poiCoos)
 
         # Limit the number of users
         if (limitUsers != -1):
@@ -63,7 +65,7 @@ class GeoSoCaMain:
         evalParams = {'usersList': users['list'], 'usersCount': users['count'],
                       'groundTruth': groundTruth, 'fusion': params['fusion'], 'poiList': pois['list'],
                       'trainingMatrix': trainingMatrix, 'evaluation': params['evaluation'],
-                      'fusionWeights': params['fusionWeights']}
+                      'fusionWeights': params['fusionWeights'], 'poiCoos': poiCoos}
         modelParams = {'AKDE': AKDEScores, 'SC': SCScores, 'CC': CCScores}
         predictions, scores = calculateScores(
             modelName, evalParams, modelParams, listLimit)
@@ -84,5 +86,5 @@ class GeoSoCaMain:
         evaluator(
             modelName, params['reranker'], params['datasetName'], evalParams,
             modelParams, predictions, userCheckinCounts=userCheckinCounts,
-            poiCheckinCounts=poiCheckinCounts
+            poiCheckinCounts=poiCheckinCounts, averageLocation=averageLocation
         )

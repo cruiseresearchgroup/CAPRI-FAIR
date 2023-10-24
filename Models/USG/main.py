@@ -8,7 +8,7 @@ from Models.USG.userBased import userBasedCalculations
 from Models.USG.friendBased import friendBasedCalculations
 from Data.calculateActiveUsers import calculateActiveUsers
 from Models.Reranking import rerankPredictions
-from Models.utils import readTrainingData, readFriendData, readTestData, readPoiCoos
+from Models.utils import readTrainingData, readFriendData, readTestData, readPoiCoos, computeAverageLocation
 from Models.scoring import calculateScores
 
 modelName = 'USG'
@@ -30,6 +30,8 @@ class USGMain:
         socialRelations = readFriendData(
             datasetFiles['socialRelations'], 'dictionary', None)
         poiCoos = readPoiCoos(datasetFiles['poiCoos'])
+        averageLocation = computeAverageLocation(
+            datasetFiles['train'], users['count'], pois['count'], poiCoos)
 
         # Limit the number of users
         if (limitUsers != -1):
@@ -53,7 +55,7 @@ class USGMain:
         evalParams = {'usersList': users['list'], 'usersCount': users['count'],
                       'groundTruth': groundTruth, 'fusion': params['fusion'], 'poiList': pois['list'],
                       'trainingMatrix': trainingMatrix, 'evaluation': params['evaluation'],
-                      'fusionWeights': params['fusionWeights']}
+                      'fusionWeights': params['fusionWeights'], 'poiCoos': poiCoos}
         modelParams = {'U': UScores, 'S': SScores, 'G': GScores}
         predictions, scores = calculateScores(
             modelName, evalParams, modelParams, listLimit)
@@ -73,5 +75,5 @@ class USGMain:
         evaluator(
             modelName, params['reranker'], params['datasetName'], evalParams,
             modelParams, predictions, userCheckinCounts=userCheckinCounts,
-            poiCheckinCounts=poiCheckinCounts
+            poiCheckinCounts=poiCheckinCounts, averageLocation=averageLocation
         )
