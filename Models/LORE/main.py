@@ -34,6 +34,8 @@ class LOREMain:
             datasetFiles['socialRelations'], 'list', None)
         groundTruth = readTestData(datasetFiles['test'])
         poiCoos = readPoiCoos(datasetFiles['poiCoos'])
+        averageLocation = computeAverageLocation(
+            datasetFiles['train'], users['count'], pois['count'], poiCoos)
 
         # Limit the number of users
         if (limitUsers != -1):
@@ -56,7 +58,8 @@ class LOREMain:
         # (Moving this before evaluation so that we can test reranking methods)
         evalParams = {'usersList': users['list'], 'usersCount': users['count'],
                       'groundTruth': groundTruth, 'fusion': params['fusion'], 'poiList': pois['list'],
-                      'trainingMatrix': trainingMatrix, 'evaluation': params['evaluation']}
+                      'trainingMatrix': trainingMatrix, 'evaluation': params['evaluation'],
+                      'fusionWeights': params['fusionWeights'], 'poiCoos': poiCoos}
         modelParams = {'FCF': FCFScores, 'KDE': KDEScores, 'AMC': AMCScores}
         predictions, scores = calculateScores(
             modelName, evalParams, modelParams, listLimit)
@@ -76,5 +79,5 @@ class LOREMain:
         evaluator(
             modelName, params['reranker'], params['datasetName'], evalParams,
             modelParams, predictions, userCheckinCounts=userCheckinCounts,
-            poiCheckinCounts=poiCheckinCounts
+            poiCheckinCounts=poiCheckinCounts, averageLocation=averageLocation
         )

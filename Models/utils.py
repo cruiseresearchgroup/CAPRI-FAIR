@@ -172,6 +172,29 @@ def readTrainingData(trainFile: str, numberOfUsers: int, numberOfPoI: int, withF
     return trainingMatrix, userCheckinCounts, poiCheckinCounts
 
 
+def computeAverageLocation(trainFile: str, numberOfUsers: int, numberOfPoI: int, poiCoos: dict):
+    """
+    Compute the weighted average location of a user based on their checkins
+    """
+    print('Computing average user location...')
+    trainingData = open(trainFile, 'r').readlines()
+    trainCheckinsByUser = defaultdict(list)
+
+    # TODO: we may replace this condition with a more compact one
+    # e.g. value = freq if withFrequency == True else 1.0
+    for dataInstance in trainingData:
+        uid, lid, freq = dataInstance.strip().split()
+        uid, lid, freq = int(uid), int(lid), int(freq)
+        trainCheckinsByUser[uid].extend([lid for _ in range(freq)])
+
+    averageLocation = {
+        uid: np.array([poiCoos[lid] for lid in lids]).mean(axis=0)
+        for uid, lids in trainCheckinsByUser.items()
+    }
+
+    return averageLocation
+
+
 def readTrainingCheckins(checkinFile: str, sparseTrainingMatrix):
     """
     Reads the training checkins from the file and returns a dictionary.

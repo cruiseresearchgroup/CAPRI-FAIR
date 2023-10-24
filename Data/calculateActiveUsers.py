@@ -5,7 +5,7 @@ from utils import logger
 from config import activeUsersPercentage
 
 
-def calculateActiveUsers(dataset: str, trainFilePath: str):
+def calculateActiveUsers(dataset: str, trainFilePath: str, returnPercentage = 20):
     """
     Calculates the number of active users in the dataset.
 
@@ -32,19 +32,22 @@ def calculateActiveUsers(dataset: str, trainFilePath: str):
         by=['freq'], ascending=False)
     # Obtain the ordered list of userIds
     orderedList = processedDataFrame['userId'].tolist()
+    activeUsersOutput = None
+    inactiveUsersOutput = None
     # Iterate over activeUsersPercentage
     for percentage in activeUsersPercentage:
+        print(f"{percentage} vs {returnPercentage}")
         # Check if has not been previously calculated
         normalPercentage = '{0:02d}'.format(percentage)
         fileName = f'{dataset}_Active_{normalPercentage}Percent.txt'
         path = os.path.abspath(f'./Data/_processedData/{fileName}')
-        if (os.path.exists(path)):
-            logger(f'{fileName} already calculated!')
-            continue
         # Calculate active users
         limit = int(processedDataFrame.shape[0] * percentage / 100)
         activeUsers = orderedList[:limit]
         inactiveUsers = orderedList[limit:]
+        if percentage == returnPercentage:
+            activeUsersOutput = activeUsers
+            inactiveUsersOutput = inactiveUsers
         # Sort main dataFrame based on orderedList
         # NOTE: We need to keep the order of the users based on the orderedList, so we should set userId as index
         print(f'Calculating {fileName} ...')
@@ -53,8 +56,17 @@ def calculateActiveUsers(dataset: str, trainFilePath: str):
         inactiveUsersDF = dataFrame.set_index(
             'userId').loc[inactiveUsers].reset_index()
         # Limit users based on limit and export to file
+        if (os.path.exists(path)):
+            logger(f'{fileName} already exists!')
+            continue
         print('Exporting to file ...')
         activeUsersDF.to_csv(
             path, sep='\t', index=False, header=False)
         inactiveUsersDF.to_csv(path.replace(
             'Active', 'Inactive'), sep='\t', index=False, header=False)
+
+    df = pd.DataFrame(
+        [(a, True) for a in activeUsersOutput] + [(i, False) for i in inactiveUsersOutput],
+        columns=['user_id', 'active']
+    ).set_index('user_id')
+    return df
