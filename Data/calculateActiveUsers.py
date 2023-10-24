@@ -36,7 +36,6 @@ def calculateActiveUsers(dataset: str, trainFilePath: str, returnPercentage = 20
     inactiveUsersOutput = None
     # Iterate over activeUsersPercentage
     for percentage in activeUsersPercentage:
-        print(f"{percentage} vs {returnPercentage}")
         # Check if has not been previously calculated
         normalPercentage = '{0:02d}'.format(percentage)
         fileName = f'{dataset}_Active_{normalPercentage}Percent.txt'

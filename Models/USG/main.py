@@ -47,8 +47,6 @@ class USGMain:
             params['datasetName'], users, pois, socialRelations, trainingMatrix, groundTruth)
         GScores = powerLawCalculations(
             params['datasetName'], users, pois, trainingMatrix, poiCoos, groundTruth)
-        IScores = ItemExposureCalculations(
-            params['datasetName'], users, pois, poiCheckinCounts, groundTruth)
 
         # Segmenting active users
         activeUsers = calculateActiveUsers(params['datasetName'], datasetFiles['train'])
@@ -58,8 +56,16 @@ class USGMain:
         evalParams = {'usersList': users['list'], 'usersCount': users['count'],
                       'groundTruth': groundTruth, 'fusion': params['fusion'], 'poiList': pois['list'],
                       'trainingMatrix': trainingMatrix, 'evaluation': params['evaluation'],
-                      'fusionWeights': params['fusionWeights'], 'poiCoos': poiCoos}
-        modelParams = {'U': UScores, 'S': SScores, 'G': GScores, 'I': IScores}
+                      'fusionWeights': params['fusionWeights'], 'poiCoos': poiCoos,
+                      'fairness': params['fairness']}
+        modelParams = {'U': UScores, 'S': SScores, 'G': GScores}
+
+        # Add fairness modules as needed
+        if 'Provider' == params['fairness']:
+            IScores = ItemExposureCalculations(
+                params['datasetName'], users, pois, poiCheckinCounts, groundTruth)
+            modelParams['I'] = IScores
+
         predictions, scores = calculateScores(
             modelName, evalParams, modelParams, listLimit)
 

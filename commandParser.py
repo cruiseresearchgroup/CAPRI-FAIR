@@ -1,11 +1,12 @@
 from utils import logger
 import inquirer
 # from inquirer import prompt
-from config import datasets, models, rerankers, fusions, evaluationMetrics
+from config import datasets, models, rerankers, fusions, evaluationMetrics, fairnessModules
 
 modelChoices = []
 rerankingChoices = []
 fusionChoices = []
+fairnessChoices = []
 datasetChoices = []
 evaluatorChoices = []
 
@@ -28,6 +29,9 @@ def initChoices():
     # Preparing reranking items
     for reranker in rerankers:
         rerankingChoices.append(reranker)
+    # Preparing fairness module items
+    for mod in fairnessModules:
+        fairnessChoices.append(mod)
     # Preparing dataset items
     for dataset in datasets:
         datasetChoices.append(dataset)
@@ -63,6 +67,10 @@ def interactiveCommandForm():
         inquirer.List('Reranking',
             message="Choose the reranking method you need:",
             choices=rerankingChoices
+        ),
+        inquirer.List('Fairness',
+            message="Choose a fairness consideration to integrate:",
+            choices=fairnessChoices
         ),
         inquirer.List('Dataset',
             message="Choose the dataset you need:",

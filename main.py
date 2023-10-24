@@ -24,6 +24,7 @@ def __init__():
             "reranker": userInputs['Reranking'],
             "fusion": userInputs['Fusion'],
             "ignored": userInputs['Ignored'],
+            "fairness": userInputs['Fairness'],
             "datasetName": userInputs['Dataset'],
             "evaluation": userInputs['Evaluation'],
             "fusionWeights": fusionWeights

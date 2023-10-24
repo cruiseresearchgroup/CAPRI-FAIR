@@ -7,8 +7,9 @@ from Models.GeoSoCa.social import socialCalculations
 from Data.calculateActiveUsers import calculateActiveUsers
 from Models.GeoSoCa.categorical import categoricalCalculations
 from Models.GeoSoCa.geographical import geographicalCalculations
+from Models.USG.itemExposure import ItemExposureCalculations
 from Models.Reranking import rerankPredictions
-from Models.utils import readPoiCoos, readTestData, readCategoryData, readTrainingData, readFriendData
+from Models.utils import readPoiCoos, readTestData, readCategoryData, readTrainingData, readFriendData, computeAverageLocation
 from Models.scoring import calculateScores
 
 modelName = 'GeoSoCa'
@@ -58,19 +59,26 @@ class GeoSoCaMain:
                 params['datasetName'], users, pois, trainingMatrix, poiCategoryMatrix, groundTruth)
 
         # Segmenting active users
-        calculateActiveUsers(params['datasetName'], datasetFiles['train'])
+        activeUsers = calculateActiveUsers(params['datasetName'], datasetFiles['train'])
 
         # Score calculation
         # (Moving this before evaluation so that we can test reranking methods)
         evalParams = {'usersList': users['list'], 'usersCount': users['count'],
                       'groundTruth': groundTruth, 'fusion': params['fusion'], 'poiList': pois['list'],
                       'trainingMatrix': trainingMatrix, 'evaluation': params['evaluation'],
-                      'fusionWeights': params['fusionWeights'], 'poiCoos': poiCoos}
+                      'fusionWeights': params['fusionWeights'], 'poiCoos': poiCoos,
+                      'fairness': params['fairness']}
         modelParams = {'AKDE': AKDEScores, 'SC': SCScores, 'CC': CCScores}
+
+        # Add fairness modules as needed
+        if 'Provider' == params['fairness']:
+            IScores = ItemExposureCalculations(
+                params['datasetName'], users, pois, poiCheckinCounts, groundTruth)
+            modelParams['I'] = IScores
+
         predictions, scores = calculateScores(
             modelName, evalParams, modelParams, listLimit)
 
-        # Reranking
         # Reranking
         predictions = rerankPredictions(
             params['reranker'],
@@ -86,5 +94,6 @@ class GeoSoCaMain:
         evaluator(
             modelName, params['reranker'], params['datasetName'], evalParams,
             modelParams, predictions, userCheckinCounts=userCheckinCounts,
-            poiCheckinCounts=poiCheckinCounts, averageLocation=averageLocation
+            poiCheckinCounts=poiCheckinCounts, averageLocation=averageLocation,
+            activeUsers=activeUsers
         )

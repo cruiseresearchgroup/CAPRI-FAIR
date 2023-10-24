@@ -36,6 +36,10 @@ fusionWeights = [0.3, 0.3, 0.2, 0.2]
 # List of evaluation metrics
 evaluationMetrics = ["Precision", "Recall", "mAP", "NDCG"]
 
+# List of additional fairness context modules
+fairnessModules = ["None", "Provider"]
+FairnessDict = {"provider": 0.5}
+
 # Models Dictionaries
 GeoSoCaDict = {"alpha": 0.5}
 LoreDict = {"alpha": 0.05, "deltaT": 3600 * 24}

@@ -105,6 +105,7 @@ def evaluator(modelName: str, rerankerName: str, datasetName: str,
     # Fetching the list of parameters
     usersList, usersCount, groundTruth, fusion, evaluationList = evalParams['usersList'], evalParams['usersCount'], evalParams[
         'groundTruth'], evalParams['fusion'], evalParams['evaluation']
+    fairness = evalParams['fairness']
     poiCoos = evalParams['poiCoos']
     evaluationList = [x['name'] for x in evaluationList]
     usersInGroundTruth = list((u for u in usersList if u in groundTruth))
@@ -112,7 +113,7 @@ def evaluator(modelName: str, rerankerName: str, datasetName: str,
     med_dist = []
 
     # Add caching policy (prevent a similar setting to be executed again)
-    fileName = f'{modelName}_{rerankerName}_{datasetName}_{fusion}_{usersCount}user_top{topK}_limit{listLimit}'
+    fileName = f'{modelName}_{rerankerName}_{fairness}_{datasetName}_{fusion}_{usersCount}user_top{topK}_limit{listLimit}'
     calculatedResults = open(f"{outputsDir}/Rec_{fileName}.txt", 'w+')
 
     # Initializing evaluation dataframe
