@@ -5,7 +5,7 @@ from typing import List
 from collections import Counter
 
 
-def gceGlobalUserFairness(ground_truth, predictions, repeat_explore_ratio):
+def gceGlobalUserFairness(ground_truth, predictions, active_users):
     """
     Computes the Generalized Cross-Entropy (GCE) between repeat and explore
     users. The distinction between these types of users is done elsewhere.
@@ -18,9 +18,9 @@ def gceGlobalUserFairness(ground_truth, predictions, repeat_explore_ratio):
             for u in ground_truth.keys()]
     rg_u = pd.DataFrame(rg_u, columns=['user_id', 'rg_u']).set_index('user_id')
 
-    rg_u = rg_u.join(repeat_explore_ratio[['repeat_ratio', 'repeat_user']], how='left').fillna(0)
+    rg_u = rg_u.join(active_users[['active']], how='left').fillna(0)
     Z_u = rg_u['rg_u'].sum()
-    p_m = rg_u[['rg_u', 'repeat_user']].groupby('repeat_user').sum() / Z_u
+    p_m = rg_u[['rg_u', 'active']].groupby('active').sum() / Z_u
     p_m['rg_fair'] = [0.5, 0.5]
     print("[[ User precision ratios ]]")
     print(p_m)

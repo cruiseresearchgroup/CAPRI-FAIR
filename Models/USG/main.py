@@ -48,7 +48,7 @@ class USGMain:
             params['datasetName'], users, pois, trainingMatrix, poiCoos, groundTruth)
 
         # Segmenting active users
-        calculateActiveUsers(params['datasetName'], datasetFiles['train'])
+        activeUsers = calculateActiveUsers(params['datasetName'], datasetFiles['train'])
 
         # Score calculation
         # (Moving this before evaluation so that we can test reranking methods)
@@ -75,5 +75,6 @@ class USGMain:
         evaluator(
             modelName, params['reranker'], params['datasetName'], evalParams,
             modelParams, predictions, userCheckinCounts=userCheckinCounts,
-            poiCheckinCounts=poiCheckinCounts, averageLocation=averageLocation
+            poiCheckinCounts=poiCheckinCounts, averageLocation=averageLocation,
+            activeUsers=activeUsers
         )

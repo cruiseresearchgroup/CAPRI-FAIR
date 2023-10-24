@@ -74,7 +74,7 @@ def overallScoreCalculator(modelName: str, userId, evalParams, modelParams):
 def evaluator(modelName: str, rerankerName: str, datasetName: str,
               evalParams: dict, modelParams: dict, predictions: dict,
               userCheckinCounts = None, poiCheckinCounts = None,
-              averageLocation = None):
+              averageLocation = None, activeUsers = None):
     """
     Evaluate the model with the given parameters and return the evaluation metrics
 
@@ -150,9 +150,15 @@ def evaluator(modelName: str, rerankerName: str, datasetName: str,
          'mean_median_distance': np.mean(med_dist)}
 
     # Compute global metrics
-    if not ((userCheckinCounts is None) or (poiCheckinCounts is None)):
+    # if not (userCheckinCounts is None):
+    #     metricsSet['gce_users'] = \
+    #         gceGlobalUserFairness(groundTruth, predictions, userCheckinCounts)
+
+    if not (activeUsers is None):
         metricsSet['gce_users'] = \
-            gceGlobalUserFairness(groundTruth, predictions, userCheckinCounts)
+            gceGlobalUserFairness(groundTruth, predictions, activeUsers)
+
+    if not (poiCheckinCounts is None):
         metricsSet['gce_items'] = \
             gceGlobalItemFairness(groundTruth, predictions, topK, poiCheckinCounts)
 
