@@ -1,3 +1,4 @@
+import ctypes
 import math
 import time
 import numpy as np
@@ -84,3 +85,20 @@ class PowerLaw(object):
     def predict(self, uid, lj):
         lj = self.poiCoos[lj]
         return np.prod([self.pr_d(dist(self.poiCoos[li], lj)) for li in self.visitedLids[uid]])
+
+
+def power_law_predict(modelId, u):
+    """
+    Since the predict() method of this model is so slow, this function aids in
+    parallelizing it.
+
+    Given the Python object ID of the Power Law model and a user ID,
+    compute the scores of all the POIs.
+    """
+    model = ctypes.cast(modelId, ctypes.py_object).value
+    poisCount = model.checkinMatrix.shape[1]
+    results = np.array([
+        model.predict(u, l)
+        for l in range(poisCount)
+    ])
+    return results

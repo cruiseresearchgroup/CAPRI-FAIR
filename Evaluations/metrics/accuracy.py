@@ -143,3 +143,28 @@ def ndcgk(actual: list, predicted: list, relevance=None, at=None):
         return 0.0
     # Return items
     return round(rdcg / idcg, 4)
+
+def hitRatio(groundTruth: dict, predictions: dict):
+    """
+    Computes the number of relevant results among the top k recommended items
+
+    Parameters
+    ----------
+    actual: list
+        A list of ground truth items
+        example: [X, Y, Z]
+    recommended: list
+        A list of ground truth items (all possible relevant items)
+        example: [x, y, z]
+
+    Returns
+    ----------
+        precision at k
+    """
+    users = 0
+    hits = 0
+    for uid in groundTruth.keys():
+        if set(groundTruth[uid]) & set(predictions[uid]):
+            hits += 1
+        users += 1
+    return hits / users

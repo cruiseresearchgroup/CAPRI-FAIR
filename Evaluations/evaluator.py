@@ -6,7 +6,7 @@ from Models.utils import normalize
 from Models.parallel_utils import run_parallel, CHUNK_SIZE
 from utils import logger, textToOperator
 from config import USGDict, topK, listLimit, outputsDir
-from Evaluations.metrics.accuracy import precisionk, recallk, ndcgk, mapk
+from Evaluations.metrics.accuracy import precisionk, recallk, ndcgk, mapk, hitRatio
 from Evaluations.metrics.fairness import gceGlobalUserFairness, gceGlobalItemFairness
 
 
@@ -147,6 +147,8 @@ def evaluator(modelName: str, rerankerName: str, datasetName: str,
             gceGlobalUserFairness(groundTruth, predictions, userCheckinCounts)
         metricsSet['gce_items'] = \
             gceGlobalItemFairness(groundTruth, predictions, topK, poiCheckinCounts)
+
+    metricsSet['hit_ratio'] = hitRatio(groundTruth, predictions)
 
     # Consolidate all metrics
     evalDataFrame.append(metricsSet)
