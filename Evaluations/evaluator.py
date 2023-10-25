@@ -7,7 +7,12 @@ from Models.parallel_utils import run_parallel, CHUNK_SIZE
 from utils import logger, textToOperator
 from config import USGDict, topK, listLimit, outputsDir
 from Evaluations.metrics.accuracy import precisionk, recallk, ndcgk, mapk, hitRatio
-from Evaluations.metrics.fairness import gceGlobalUserFairness, gceGlobalItemFairness
+from Evaluations.metrics.fairness import (
+    gceGlobalUserFairness,
+    gceGlobalItemFairness,
+    accuracyMetricByUserGroup,
+    exposureMetricByItemGroup
+)
 from Evaluations.metrics.spatiotemporal import medianDistance
 
 
@@ -113,7 +118,10 @@ def evaluator(modelName: str, rerankerName: str, datasetName: str,
     med_dist = []
 
     # Add caching policy (prevent a similar setting to be executed again)
-    fileName = f'{modelName}_{rerankerName}_{fairness}_{datasetName}_{fusion}_{usersCount}user_top{topK}_limit{listLimit}'
+    fairnessName = fairness
+    if fairness != 'None':
+        fairnessName += str(evalParams['fairnessWeights']['provider'])
+    fileName = f'{modelName}_{rerankerName}_{fairnessName}_{datasetName}_{fusion}_{usersCount}user_top{topK}_limit{listLimit}'
     calculatedResults = open(f"{outputsDir}/Rec_{fileName}.txt", 'w+')
 
     # Initializing evaluation dataframe
@@ -150,20 +158,22 @@ def evaluator(modelName: str, rerankerName: str, datasetName: str,
          'ndcg': np.mean(ndcg), 'map': np.mean(mean_ap),
          'mean_median_distance': np.mean(med_dist)}
 
-    # Compute global metrics
-    # if not (userCheckinCounts is None):
-    #     metricsSet['gce_users'] = \
-    #         gceGlobalUserFairness(groundTruth, predictions, userCheckinCounts)
-
     if not (activeUsers is None):
         metricsSet['gce_users'] = \
             gceGlobalUserFairness(groundTruth, predictions, activeUsers)
+
+        if ('Precision' in evaluationList):
+            precisionByGroup = accuracyMetricByUserGroup(precision, usersInGroundTruth, activeUsers)
+            metricsSet['precision_active_users'] = precisionByGroup['active']
+            metricsSet['precision_inactive_users'] = precisionByGroup['inactive']
 
     if not (poiCheckinCounts is None):
         metricsSet['gce_items'] = \
             gceGlobalItemFairness(groundTruth, predictions, topK, poiCheckinCounts)
 
-    metricsSet['hit_ratio'] = hitRatio(groundTruth, predictions)
+        exposureByGroup = exposureMetricByItemGroup(groundTruth, predictions, topK, poiCheckinCounts)
+        metricsSet['exposure_short_head'] = exposureByGroup['short_head']
+        metricsSet['exposure_long_tail'] = exposureByGroup['long_tail']
 
     # Consolidate all metrics
     evalDataFrame.append(metricsSet)

@@ -67,7 +67,7 @@ class GeoSoCaMain:
                       'groundTruth': groundTruth, 'fusion': params['fusion'], 'poiList': pois['list'],
                       'trainingMatrix': trainingMatrix, 'evaluation': params['evaluation'],
                       'fusionWeights': params['fusionWeights'], 'poiCoos': poiCoos,
-                      'fairness': params['fairness']}
+                      'fairness': params['fairness'], 'fairnessWeights': params['fairnessWeights']}
         modelParams = {'AKDE': AKDEScores, 'SC': SCScores, 'CC': CCScores}
 
         # Add fairness modules as needed

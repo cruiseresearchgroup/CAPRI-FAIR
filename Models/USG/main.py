@@ -57,7 +57,7 @@ class USGMain:
                       'groundTruth': groundTruth, 'fusion': params['fusion'], 'poiList': pois['list'],
                       'trainingMatrix': trainingMatrix, 'evaluation': params['evaluation'],
                       'fusionWeights': params['fusionWeights'], 'poiCoos': poiCoos,
-                      'fairness': params['fairness']}
+                      'fairness': params['fairness'], 'fairnessWeights': params['fairnessWeights']}
         modelParams = {'U': UScores, 'S': SScores, 'G': GScores}
 
         # Add fairness modules as needed

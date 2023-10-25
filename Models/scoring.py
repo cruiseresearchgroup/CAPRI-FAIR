@@ -5,7 +5,7 @@ from tqdm import tqdm
 from Models.utils import normalize
 from Models.parallel_utils import run_parallel, CHUNK_SIZE
 from utils import logger, textToOperator
-from config import USGDict, topK, listLimit, outputsDir, FairnessDict
+from config import USGDict, topK, listLimit, outputsDir
 
 
 # Parallel score calculators
@@ -17,7 +17,7 @@ def parallelScoreCalculatorUSG(userId, evalParamsId, modelParamsId, listLimit):
 
     fusion, poiList, trainingMatrix, fusionWeights = evalParams['fusion'], evalParams['poiList'], evalParams['trainingMatrix'], evalParams['fusionWeights']
     alpha, beta = USGDict['alpha'], USGDict['beta']
-    provider_coef = FairnessDict['provider']
+    provider_coef = evalParams['fairnessWeights']['provider']
     UScores, SScores, GScores = modelParams['U'], modelParams['S'], modelParams['G']
 
     UScoresNormal = normalize([UScores[userId, lid]
@@ -63,7 +63,7 @@ def parallelScoreCalculatorGeoSoCa(userId, evalParamsId, modelParamsId, listLimi
     modelParams = ctypes.cast(modelParamsId, ctypes.py_object).value
 
     fusion, poiList, trainingMatrix, fusionWeights = evalParams['fusion'], evalParams['poiList'], evalParams['trainingMatrix'], evalParams['fusionWeights']
-    provider_coef = FairnessDict['provider']
+    provider_coef = evalParams['fairnessWeights']['provider']
     AKDEScores, SCScores, CCScores = modelParams['AKDE'], modelParams['SC'], modelParams['CC']
 
     # Check if Category is skipped
@@ -113,7 +113,7 @@ def parallelScoreCalculatorLORE(userId, evalParamsId, modelParamsId, listLimit):
     modelParams = ctypes.cast(modelParamsId, ctypes.py_object).value
 
     fusion, poiList, trainingMatrix, fusionWeights = evalParams['fusion'], evalParams['poiList'], evalParams['trainingMatrix'], evalParams['fusionWeights']
-    provider_coef = FairnessDict['provider']
+    provider_coef = evalParams['fairnessWeights']['provider']
     KDEScores, FCFScores, AMCScores = modelParams['KDE'], modelParams['FCF'], modelParams['AMC']
 
     operands = [

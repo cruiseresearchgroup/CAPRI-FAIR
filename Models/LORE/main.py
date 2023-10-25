@@ -61,7 +61,7 @@ class LOREMain:
                       'groundTruth': groundTruth, 'fusion': params['fusion'], 'poiList': pois['list'],
                       'trainingMatrix': trainingMatrix, 'evaluation': params['evaluation'],
                       'fusionWeights': params['fusionWeights'], 'poiCoos': poiCoos,
-                      'fairness': params['fairness']}
+                      'fairness': params['fairness'], 'fairnessWeights': params['fairnessWeights']}
         modelParams = {'FCF': FCFScores, 'KDE': KDEScores, 'AMC': AMCScores}
 
         # Add fairness modules as needed
