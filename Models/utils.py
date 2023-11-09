@@ -323,6 +323,14 @@ def normalize(scores):
     return scores
 
 
+def normalize_np(scores):
+    maxScore = scores - scores.min()
+    maxScore = scores.max()
+    if not maxScore == 0:
+        scores = scores / maxScore
+    return scores
+
+
 def loadModel(modelName: str, datasetName: str, moduleName: str):
     """
     Loads the model from the file.

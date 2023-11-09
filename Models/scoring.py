@@ -2,7 +2,7 @@ import ctypes
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
-from Models.utils import normalize
+from Models.utils import normalize, normalize_np
 from Models.parallel_utils import run_parallel, CHUNK_SIZE
 from utils import logger, textToOperator
 from config import USGDict, topK, listLimit, outputsDir
@@ -68,28 +68,31 @@ def parallelScoreCalculatorGeoSoCa(userId, evalParamsId, modelParamsId, listLimi
 
     # Check if Category is skipped
     operands = [
-        np.array([
+        normalize_np(np.array([
             AKDEScores[userId, lid]
             if trainingMatrix[userId, lid] == 0 else -1
             for lid in poiList
-        ]),
-        np.array([
+        ])),
+        normalize_np(np.array([
             SCScores[userId, lid]
             if trainingMatrix[userId, lid] == 0 else -1
             for lid in poiList
-        ])
+        ]))
     ]
     operandWeights = fusionWeights[:2]
 
     if not (CCScores is None):
         operands.append(
-            np.array([
+            normalize_np(np.array([
                 CCScores[userId, lid]
                 if trainingMatrix[userId, lid] == 0 else -1
                 for lid in poiList
-            ])
+            ]))
         )
         operandWeights = fusionWeights[:3]
+
+    for i in range(len(operands)):
+        operands[i] = operands[i] / len(operands)
 
     if 'Provider' == evalParams['fairness']:
         IScores = modelParams['I']
@@ -117,21 +120,21 @@ def parallelScoreCalculatorLORE(userId, evalParamsId, modelParamsId, listLimit):
     KDEScores, FCFScores, AMCScores = modelParams['KDE'], modelParams['FCF'], modelParams['AMC']
 
     operands = [
-        np.array([
+        normalize_np(np.array([
             KDEScores[userId, lid]
             if (userId, lid) not in trainingMatrix else -1
             for lid in poiList
-        ]),
-        np.array([
+        ])) / 3,
+        normalize_np(np.array([
             FCFScores[userId, lid]
             if (userId, lid) not in trainingMatrix else -1
             for lid in poiList
-        ]),
-        np.array([
+        ])) / 3,
+        normalize_np(np.array([
             AMCScores[userId, lid]
             if (userId, lid) not in trainingMatrix else -1
             for lid in poiList
-        ])
+        ])) / 3
     ]
     operandWeights = fusionWeights[:3]
 

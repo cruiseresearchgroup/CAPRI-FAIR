@@ -94,7 +94,7 @@ def exposureMetricByItemGroup(ground_truth, predictions, k, checkin_counts):
     exposure = Counter([x for u in ground_truth.keys() for x in predictions[u][:k]])
     exposure = pd.DataFrame(exposure.items(), columns=['poi_id', 'exposure']).set_index('poi_id')
     exposure = exposure.join(checkin_counts[['short_head']], how='right').fillna(0)
-    exposure['exposure'] = exposure['exposure'] / user_count
+    # exposure['exposure'] = exposure['exposure'] / user_count
 
     results = {
         'short_head': exposure[exposure['short_head']]['exposure'].mean(),

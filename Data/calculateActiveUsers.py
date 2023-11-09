@@ -5,7 +5,7 @@ from utils import logger
 from config import activeUsersPercentage
 
 
-def calculateActiveUsers(dataset: str, trainFilePath: str, returnPercentage = 20):
+def calculateActiveUsers(dataset: str, trainFilePath: str, returnPercentage = 20, saveToFile = True):
     """
     Calculates the number of active users in the dataset.
 
@@ -58,11 +58,12 @@ def calculateActiveUsers(dataset: str, trainFilePath: str, returnPercentage = 20
         if (os.path.exists(path)):
             logger(f'{fileName} already exists!')
             continue
-        print('Exporting to file ...')
-        activeUsersDF.to_csv(
-            path, sep='\t', index=False, header=False)
-        inactiveUsersDF.to_csv(path.replace(
-            'Active', 'Inactive'), sep='\t', index=False, header=False)
+        if saveToFile:
+            print('Exporting to file ...')
+            activeUsersDF.to_csv(
+                path, sep='\t', index=False, header=False)
+            inactiveUsersDF.to_csv(path.replace(
+                'Active', 'Inactive'), sep='\t', index=False, header=False)
 
     df = pd.DataFrame(
         [(a, True) for a in activeUsersOutput] + [(i, False) for i in inactiveUsersOutput],
