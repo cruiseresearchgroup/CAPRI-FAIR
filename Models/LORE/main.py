@@ -63,13 +63,14 @@ class LOREMain:
                       'trainingMatrix': trainingMatrix, 'evaluation': params['evaluation'],
                       'fusionWeights': params['fusionWeights'], 'poiCoos': poiCoos,
                       'fairness': params['fairness'], 'fairnessWeights': params['fairnessWeights'],
-                      'topK': params['topK']}
+                      'topK': params['topK'], 'exposureModel': params['exposureModel']}
         modelParams = {'FCF': FCFScores, 'KDE': KDEScores, 'AMC': AMCScores}
 
         # Add fairness modules as needed
         if params['fairness'] in ('Provider', 'Both'):
             IScores = ItemExposureCalculations(
-                params['datasetName'], users, pois, poiCheckinCounts, groundTruth)
+                params['datasetName'], users, pois, poiCheckinCounts, groundTruth,
+                params['exposureModel'])
             modelParams['I'] = IScores
         if params['fairness'] in ('Consumer', 'Both'):
             NScores = NearbyPopularPlacesCalculations(

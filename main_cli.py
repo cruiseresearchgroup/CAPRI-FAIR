@@ -2,7 +2,7 @@ import argparse
 import logging
 
 from utils import logger
-from config import datasets, models, rerankers, fusions, evaluationMetrics, fairnessModules, fusionWeights, FairnessDict, topK
+from config import datasets, models, rerankers, fusions, evaluationMetrics, fairnessModules, fusionWeights, FairnessDict, topK, exposureModels
 from commandParser import getUserChoices
 from Data.loadDatasetFiles import loadDatasetFiles
 
@@ -14,6 +14,7 @@ parser.add_argument('fusion', help=f"Fusion method for the operands ({','.join(f
 parser.add_argument('--reranker', nargs='?', default=rerankers[0], help=f"Post-filter reranking method to use to use ({','.join(rerankers)})")
 parser.add_argument('--fairness', nargs='?', default=fairnessModules[0], help=f"Fairness context to consider ({','.join(fairnessModules)})")
 parser.add_argument('--provider_alpha', nargs='?', default=FairnessDict['provider'], help=f"Coefficient of provider fairness factor")
+parser.add_argument('--exposure_model', nargs='?', default=exposureModels[0], help=f"Coefficient of provider fairness factor")
 parser.add_argument('--consumer_beta', nargs='?', default=FairnessDict['consumer'], help=f"Coefficient of consumer fairness factor")
 parser.add_argument('--evaluation', nargs='*', help=f"Metrics to evaluate ({','.join(evaluationMetrics)})")
 parser.add_argument('--k', nargs='?', default=topK, help=f"Number of recommended POIs to evaluate per user")
@@ -58,6 +59,7 @@ if __name__ == '__main__':
         "fusion": args.fusion,
         "ignored": ignoredContexts,
         "fairness": args.fairness,
+        "exposureModel": args.exposure_model,
         "datasetName": args.dataset,
         "evaluation": [{'name': e} for e in args.evaluation],
         "fusionWeights": fusionWeights,

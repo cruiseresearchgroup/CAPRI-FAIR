@@ -113,6 +113,7 @@ def evaluator(modelName: str, rerankerName: str, datasetName: str,
     fairness = evalParams['fairness']
     poiCoos = evalParams['poiCoos']
     topK = evalParams['topK']
+    exposureModel = evalParams['exposureModel']
     evaluationList = [x['name'] for x in evaluationList]
     usersInGroundTruth = list((u for u in usersList if u in groundTruth))
     precision, recall, mean_ap, ndcg = [], [], [], []
@@ -121,7 +122,7 @@ def evaluator(modelName: str, rerankerName: str, datasetName: str,
     # Add caching policy (prevent a similar setting to be executed again)
     fairnessName = fairness
     if fairness in ('Provider', 'Both'):
-        fairnessName += '_alpha' + str(evalParams['fairnessWeights']['provider'])
+        fairnessName += f"_{exposureModel}Exposure_alpha{str(evalParams['fairnessWeights']['provider'])}"
     if fairness in ('Consumer', 'Both'):
         fairnessName += '_beta' + str(evalParams['fairnessWeights']['consumer'])
     fileName = f'{modelName}_{rerankerName}_{fairnessName}_{datasetName}_{fusion}_{usersCount}user_top{topK}_limit{listLimit}'

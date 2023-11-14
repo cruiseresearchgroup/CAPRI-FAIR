@@ -17,6 +17,7 @@ models = {
     "LORE": ["Geographical", "Social", "Temporal"],
     "USG": ["Interaction", "Social", "Geographical"],
 }
+exposureModels = ["Linear", "PowerLaw", "Logistic"]
 
 # List of reranking methods
 rerankers = ["TopK", "Random", "ItemExposure"]
