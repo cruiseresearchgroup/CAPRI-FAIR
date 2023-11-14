@@ -7,6 +7,7 @@ from Models.USG.powerLaw import powerLawCalculations
 from Models.USG.itemExposure import ItemExposureCalculations
 from Models.USG.userBased import userBasedCalculations
 from Models.USG.friendBased import friendBasedCalculations
+from Models.USG.nearbyPopularPlaces import NearbyPopularPlacesCalculations
 from Data.calculateActiveUsers import calculateActiveUsers
 from Models.Reranking import rerankPredictions
 from Models.utils import readTrainingData, readFriendData, readTestData, readPoiCoos, computeAverageLocation
@@ -61,10 +62,14 @@ class USGMain:
         modelParams = {'U': UScores, 'S': SScores, 'G': GScores}
 
         # Add fairness modules as needed
-        if 'Provider' == params['fairness']:
+        if params['fairness'] in ('Provider', 'Both'):
             IScores = ItemExposureCalculations(
                 params['datasetName'], users, pois, poiCheckinCounts, groundTruth)
             modelParams['I'] = IScores
+        if params['fairness'] in ('Consumer', 'Both'):
+            NScores = NearbyPopularPlacesCalculations(
+                params['datasetName'], users, pois, trainingMatrix, poiCoos, poiCheckinCounts, activeUsers, groundTruth)
+            modelParams['N'] = NScores
 
         predictions, scores = calculateScores(
             modelName, evalParams, modelParams, listLimit)

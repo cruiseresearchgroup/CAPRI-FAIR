@@ -31,11 +31,11 @@ class ItemExposurePowerLaw(object):
         # logger(f"Ridge, alpha={self.alpha:.1f}: y = {self.a:.2f} * x^{self.b:.2f}")
 
         # Linear
-        # logger('Fitting distances distribution (linear)...')
-        # x, t = bins[nonzero], freqs[nonzero]
-        # self.powerLaw = Ridge(alpha=self.alpha).fit(x[:, np.newaxis], t)
-        # self.a, self.b = self.powerLaw.intercept_, self.powerLaw.coef_[0]
-        # logger(f"Ridge, alpha={self.alpha:.1f}: y = {self.a:.2f} + {self.b:.2f}*x")
+        logger('Fitting distances distribution (linear)...')
+        x, t = bins[nonzero], freqs[nonzero]
+        self.powerLaw = Ridge(alpha=self.alpha).fit(x[:, np.newaxis], t)
+        self.a, self.b = self.powerLaw.intercept_, self.powerLaw.coef_[0]
+        logger(f"Ridge, alpha={self.alpha:.1f}: y = {self.a:.2f} + {self.b:.2f}*x")
 
         # Logistic
         # logger('Fitting distances distribution (logistic)...')
@@ -57,10 +57,10 @@ class ItemExposurePowerLaw(object):
         x = self.poiCheckinCounts[['checkins']].reindex(poisList).fillna(1).values
 
         # Power law
-        return np.log(self.a * (x ** self.b))
+        # return np.log(self.a * (x ** self.b))
 
         # Linear
-        # return self.a + (x * self.b)
+        return self.a + (x * self.b)
 
         # Logistic
         # return self.powerLaw.predict(x)

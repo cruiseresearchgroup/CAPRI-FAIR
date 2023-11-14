@@ -8,6 +8,7 @@ from Models.LORE.friendBased import friendBasedCalculations
 from Models.LORE.additiveMarkovChain import additiveMarkovChainCalculations
 from Models.LORE.kernelDensityEstimation import kernelDensityEstimationCalculations
 from Models.USG.itemExposure import ItemExposureCalculations
+from Models.USG.nearbyPopularPlaces import NearbyPopularPlacesCalculations
 from Models.utils import readFriendData, readPoiCoos, readSparseTrainingData, readTestData, readTrainingCheckins, computeAverageLocation
 from Models.Reranking import rerankPredictions
 from Models.scoring import calculateScores
@@ -65,10 +66,14 @@ class LOREMain:
         modelParams = {'FCF': FCFScores, 'KDE': KDEScores, 'AMC': AMCScores}
 
         # Add fairness modules as needed
-        if 'Provider' == params['fairness']:
+        if params['fairness'] in ('Provider', 'Both'):
             IScores = ItemExposureCalculations(
                 params['datasetName'], users, pois, poiCheckinCounts, groundTruth)
             modelParams['I'] = IScores
+        if params['fairness'] in ('Consumer', 'Both'):
+            NScores = NearbyPopularPlacesCalculations(
+                params['datasetName'], users, pois, trainingMatrix, poiCoos, poiCheckinCounts, activeUsers, groundTruth)
+            modelParams['N'] = NScores
 
         predictions, scores = calculateScores(
             modelName, evalParams, modelParams, listLimit)

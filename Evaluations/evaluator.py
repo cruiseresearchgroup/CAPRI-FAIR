@@ -119,8 +119,10 @@ def evaluator(modelName: str, rerankerName: str, datasetName: str,
 
     # Add caching policy (prevent a similar setting to be executed again)
     fairnessName = fairness
-    if fairness != 'None':
-        fairnessName += str(evalParams['fairnessWeights']['provider'])
+    if fairness in ('Provider', 'Both'):
+        fairnessName += '_alpha' + str(evalParams['fairnessWeights']['provider'])
+    if fairness in ('Consumer', 'Both'):
+        fairnessName += '_beta' + str(evalParams['fairnessWeights']['consumer'])
     fileName = f'{modelName}_{rerankerName}_{fairnessName}_{datasetName}_{fusion}_{usersCount}user_top{topK}_limit{listLimit}'
     calculatedResults = open(f"{outputsDir}/Rec_{fileName}.txt", 'w+')
 

@@ -14,6 +14,7 @@ parser.add_argument('fusion', help=f"Fusion method for the operands ({','.join(f
 parser.add_argument('--reranker', nargs='?', default=rerankers[0], help=f"Post-filter reranking method to use to use ({','.join(rerankers)})")
 parser.add_argument('--fairness', nargs='?', default=fairnessModules[0], help=f"Fairness context to consider ({','.join(fairnessModules)})")
 parser.add_argument('--provider_alpha', nargs='?', default=FairnessDict['provider'], help=f"Coefficient of provider fairness factor")
+parser.add_argument('--consumer_beta', nargs='?', default=FairnessDict['consumer'], help=f"Coefficient of consumer fairness factor")
 parser.add_argument('--evaluation', nargs='*', help=f"Metrics to evaluate ({','.join(evaluationMetrics)})")
 
 if __name__ == '__main__':
@@ -48,6 +49,7 @@ if __name__ == '__main__':
 
     fairnessWeights = FairnessDict.copy()
     fairnessWeights['provider'] = float(args.provider_alpha)
+    fairnessWeights['consumer'] = float(args.consumer_beta)
     # Initializing parameters
     parameters = {
         "reranker": args.reranker,

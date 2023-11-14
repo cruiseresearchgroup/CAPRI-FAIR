@@ -18,6 +18,7 @@ def parallelScoreCalculatorUSG(userId, evalParamsId, modelParamsId, listLimit):
     fusion, poiList, trainingMatrix, fusionWeights = evalParams['fusion'], evalParams['poiList'], evalParams['trainingMatrix'], evalParams['fusionWeights']
     alpha, beta = USGDict['alpha'], USGDict['beta']
     provider_coef = evalParams['fairnessWeights']['provider']
+    consumer_coef = evalParams['fairnessWeights']['consumer']
     UScores, SScores, GScores = modelParams['U'], modelParams['S'], modelParams['G']
 
     UScoresNormal = normalize([UScores[userId, lid]
@@ -41,7 +42,7 @@ def parallelScoreCalculatorUSG(userId, evalParamsId, modelParamsId, listLimit):
     ]
     operandWeights = fusionWeights[:3]
 
-    if 'Provider' == evalParams['fairness']:
+    if evalParams['fairness'] in ('Provider', 'Both'):
         IScores = modelParams['I']
         IScoresNormal = normalize([IScores[userId, lid]
                                    if trainingMatrix[userId, lid] == 0 else -1
@@ -49,6 +50,15 @@ def parallelScoreCalculatorUSG(userId, evalParamsId, modelParamsId, listLimit):
         IScoresNormal = np.array(IScoresNormal)
         operands.append(provider_coef * IScoresNormal)
         operandWeights.append(provider_coef)
+
+    if evalParams['fairness'] in ('Consumer', 'Both'):
+        NScores = modelParams['N']
+        NScoresNormal = normalize([NScores[userId, lid]
+                                   if trainingMatrix[userId, lid] == 0 else -1
+                                   for lid in poiList])
+        NScoresNormal = np.array(NScoresNormal)
+        operands.append(consumer_coef * NScoresNormal)
+        operandWeights.append(consumer_coef)
 
     overallScores = np.array(textToOperator(fusion, operands, operandWeights))
     argSorted = overallScores.argsort()
@@ -64,6 +74,7 @@ def parallelScoreCalculatorGeoSoCa(userId, evalParamsId, modelParamsId, listLimi
 
     fusion, poiList, trainingMatrix, fusionWeights = evalParams['fusion'], evalParams['poiList'], evalParams['trainingMatrix'], evalParams['fusionWeights']
     provider_coef = evalParams['fairnessWeights']['provider']
+    consumer_coef = evalParams['fairnessWeights']['consumer']
     AKDEScores, SCScores, CCScores = modelParams['AKDE'], modelParams['SC'], modelParams['CC']
 
     # Check if Category is skipped
@@ -94,7 +105,7 @@ def parallelScoreCalculatorGeoSoCa(userId, evalParamsId, modelParamsId, listLimi
     for i in range(len(operands)):
         operands[i] = operands[i] / len(operands)
 
-    if 'Provider' == evalParams['fairness']:
+    if evalParams['fairness'] in ('Provider', 'Both'):
         IScores = modelParams['I']
         IScoresNormal = normalize([IScores[userId, lid]
                                    if trainingMatrix[userId, lid] == 0 else -1
@@ -102,6 +113,15 @@ def parallelScoreCalculatorGeoSoCa(userId, evalParamsId, modelParamsId, listLimi
         IScoresNormal = np.array(IScoresNormal)
         operands.append(provider_coef * IScoresNormal)
         operandWeights.append(provider_coef)
+
+    if evalParams['fairness'] in ('Consumer', 'Both'):
+        NScores = modelParams['N']
+        NScoresNormal = normalize([NScores[userId, lid]
+                                   if trainingMatrix[userId, lid] == 0 else -1
+                                   for lid in poiList])
+        NScoresNormal = np.array(NScoresNormal)
+        operands.append(consumer_coef * NScoresNormal)
+        operandWeights.append(consumer_coef)
 
     overallScores = np.array(textToOperator(fusion, operands, operandWeights))
     argSorted = overallScores.argsort()
@@ -117,6 +137,7 @@ def parallelScoreCalculatorLORE(userId, evalParamsId, modelParamsId, listLimit):
 
     fusion, poiList, trainingMatrix, fusionWeights = evalParams['fusion'], evalParams['poiList'], evalParams['trainingMatrix'], evalParams['fusionWeights']
     provider_coef = evalParams['fairnessWeights']['provider']
+    consumer_coef = evalParams['fairnessWeights']['consumer']
     KDEScores, FCFScores, AMCScores = modelParams['KDE'], modelParams['FCF'], modelParams['AMC']
 
     operands = [
@@ -138,7 +159,7 @@ def parallelScoreCalculatorLORE(userId, evalParamsId, modelParamsId, listLimit):
     ]
     operandWeights = fusionWeights[:3]
 
-    if 'Provider' == evalParams['fairness']:
+    if evalParams['fairness'] in ('Provider', 'Both'):
         IScores = modelParams['I']
         IScoresNormal = normalize([IScores[userId, lid]
                                    if (userId, lid) not in trainingMatrix else -1
@@ -146,6 +167,15 @@ def parallelScoreCalculatorLORE(userId, evalParamsId, modelParamsId, listLimit):
         IScoresNormal = np.array(IScoresNormal)
         operands.append(provider_coef * IScoresNormal)
         operandWeights.append(provider_coef)
+
+    if evalParams['fairness'] in ('Consumer', 'Both'):
+        NScores = modelParams['N']
+        NScoresNormal = normalize([NScores[userId, lid]
+                                   if (userId, lid) not in trainingMatrix else -1
+                                   for lid in poiList])
+        NScoresNormal = np.array(NScoresNormal)
+        operands.append(consumer_coef * NScoresNormal)
+        operandWeights.append(consumer_coef)
 
     overallScores = np.array(textToOperator(fusion, operands, operandWeights))
     argSorted = overallScores.argsort()
