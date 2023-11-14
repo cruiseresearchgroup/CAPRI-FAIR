@@ -5,7 +5,7 @@ from tqdm import tqdm
 from Models.utils import normalize
 from Models.parallel_utils import run_parallel, CHUNK_SIZE
 from utils import logger, textToOperator
-from config import USGDict, topK, listLimit, outputsDir
+from config import USGDict, listLimit, outputsDir
 from Evaluations.metrics.accuracy import precisionk, recallk, ndcgk, mapk, hitRatio
 from Evaluations.metrics.fairness import (
     gceGlobalUserFairness,
@@ -112,6 +112,7 @@ def evaluator(modelName: str, rerankerName: str, datasetName: str,
         'groundTruth'], evalParams['fusion'], evalParams['evaluation']
     fairness = evalParams['fairness']
     poiCoos = evalParams['poiCoos']
+    topK = evalParams['topK']
     evaluationList = [x['name'] for x in evaluationList]
     usersInGroundTruth = list((u for u in usersList if u in groundTruth))
     precision, recall, mean_ap, ndcg = [], [], [], []

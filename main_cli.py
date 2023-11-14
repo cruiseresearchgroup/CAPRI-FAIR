@@ -2,7 +2,7 @@ import argparse
 import logging
 
 from utils import logger
-from config import datasets, models, rerankers, fusions, evaluationMetrics, fairnessModules, fusionWeights, FairnessDict
+from config import datasets, models, rerankers, fusions, evaluationMetrics, fairnessModules, fusionWeights, FairnessDict, topK
 from commandParser import getUserChoices
 from Data.loadDatasetFiles import loadDatasetFiles
 
@@ -16,6 +16,7 @@ parser.add_argument('--fairness', nargs='?', default=fairnessModules[0], help=f"
 parser.add_argument('--provider_alpha', nargs='?', default=FairnessDict['provider'], help=f"Coefficient of provider fairness factor")
 parser.add_argument('--consumer_beta', nargs='?', default=FairnessDict['consumer'], help=f"Coefficient of consumer fairness factor")
 parser.add_argument('--evaluation', nargs='*', help=f"Metrics to evaluate ({','.join(evaluationMetrics)})")
+parser.add_argument('--k', nargs='?', default=topK, help=f"Number of recommended POIs to evaluate per user")
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -52,6 +53,7 @@ if __name__ == '__main__':
     fairnessWeights['consumer'] = float(args.consumer_beta)
     # Initializing parameters
     parameters = {
+        "topK": int(args.k),
         "reranker": args.reranker,
         "fusion": args.fusion,
         "ignored": ignoredContexts,

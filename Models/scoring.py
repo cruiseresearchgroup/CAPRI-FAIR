@@ -5,7 +5,7 @@ from tqdm import tqdm
 from Models.utils import normalize, normalize_np
 from Models.parallel_utils import run_parallel, CHUNK_SIZE
 from utils import logger, textToOperator
-from config import USGDict, topK, listLimit, outputsDir
+from config import USGDict, listLimit, outputsDir
 
 
 # Parallel score calculators

@@ -14,7 +14,7 @@ import pandas as pd
 from tqdm import tqdm
 from Models.utils import normalize
 from utils import logger, textToOperator
-from config import USGDict, topK, listLimit, outputsDir
+from config import USGDict, listLimit, outputsDir
 
 
 def item_exposure_ranking(

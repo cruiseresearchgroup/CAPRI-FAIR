@@ -1,6 +1,6 @@
 import numpy as np
 from utils import logger
-from config import limitUsers, topK, listLimit, itemExposureScalingFactor
+from config import limitUsers, listLimit, itemExposureScalingFactor
 from Evaluations.evaluator import evaluator
 from Data.readDataSizes import readDataSizes
 from Models.GeoSoCa.social import socialCalculations
@@ -68,7 +68,8 @@ class GeoSoCaMain:
                       'groundTruth': groundTruth, 'fusion': params['fusion'], 'poiList': pois['list'],
                       'trainingMatrix': trainingMatrix, 'evaluation': params['evaluation'],
                       'fusionWeights': params['fusionWeights'], 'poiCoos': poiCoos,
-                      'fairness': params['fairness'], 'fairnessWeights': params['fairnessWeights']}
+                      'fairness': params['fairness'], 'fairnessWeights': params['fairnessWeights'],
+                      'topK': params['topK']}
         modelParams = {'AKDE': AKDEScores, 'SC': SCScores, 'CC': CCScores}
 
         # Add fairness modules as needed
@@ -88,7 +89,7 @@ class GeoSoCaMain:
         predictions = rerankPredictions(
             params['reranker'],
             predictions,
-            k=topK,
+            params['topK'],
             userCheckinCounts=userCheckinCounts,
             poiCheckinCounts=poiCheckinCounts,
             scalingFactor=itemExposureScalingFactor,

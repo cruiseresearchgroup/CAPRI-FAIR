@@ -1,6 +1,6 @@
 import numpy as np
 from utils import logger
-from config import limitUsers, topK, listLimit, itemExposureScalingFactor
+from config import limitUsers, listLimit, itemExposureScalingFactor
 from Evaluations.evaluator import evaluator
 from Data.readDataSizes import readDataSizes
 from Data.calculateActiveUsers import calculateActiveUsers
@@ -62,7 +62,8 @@ class LOREMain:
                       'groundTruth': groundTruth, 'fusion': params['fusion'], 'poiList': pois['list'],
                       'trainingMatrix': trainingMatrix, 'evaluation': params['evaluation'],
                       'fusionWeights': params['fusionWeights'], 'poiCoos': poiCoos,
-                      'fairness': params['fairness'], 'fairnessWeights': params['fairnessWeights']}
+                      'fairness': params['fairness'], 'fairnessWeights': params['fairnessWeights'],
+                      'topK': params['topK']}
         modelParams = {'FCF': FCFScores, 'KDE': KDEScores, 'AMC': AMCScores}
 
         # Add fairness modules as needed
@@ -82,7 +83,7 @@ class LOREMain:
         predictions = rerankPredictions(
             params['reranker'],
             predictions,
-            k=topK,
+            params['topK'],
             userCheckinCounts=userCheckinCounts,
             poiCheckinCounts=poiCheckinCounts,
             scalingFactor=itemExposureScalingFactor,

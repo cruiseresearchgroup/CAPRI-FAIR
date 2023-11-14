@@ -12,10 +12,10 @@ import pandas as pd
 from tqdm import tqdm
 from Models.utils import normalize
 from utils import logger, textToOperator
-from config import USGDict, topK, listLimit, outputsDir
+from config import USGDict, listLimit, outputsDir
 
 
-def topk_ranking(predictions: dict):
+def topk_ranking(predictions: dict, topK: int):
     """
     Simply perform no reordering; that is, pick the top K items in each list.
     """
@@ -25,7 +25,7 @@ def topk_ranking(predictions: dict):
     return predictions
 
 
-def random_ranking(predictions: dict):
+def random_ranking(predictions: dict, topK: int):
     """
     Randomly rank the preselected items
     """

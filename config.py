@@ -7,7 +7,7 @@ outputsDir = os.path.abspath('./Outputs/')
 # Default Parameters
 topK = 20  # Top-k items to evaluate (default: 10)
 limitUsers = -1  # Limit the number of users (default: -1)
-listLimit = 25  # Limit the length of recommendation list (default: 10)
+listLimit = 30  # Limit the length of recommendation list (default: 10)
 activeUsersPercentage = [5, 20]  # Calculate [n] percents of users as active
 itemExposureScalingFactor = 5 # Scaling factor for the item exposure reranking
 
