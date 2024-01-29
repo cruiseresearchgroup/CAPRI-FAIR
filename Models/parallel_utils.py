@@ -6,7 +6,7 @@ import multiprocessing as mp
 
 from tqdm import tqdm
 
-CHUNK_SIZE = 32
+CHUNK_SIZE = 16
 
 
 class ForkingPickler4(ForkingPickler):
