@@ -1,8 +1,12 @@
-# CAPRI: Context-Aware Interpretable Point-of-Interest Recommendation Framework
+# CAPRI-FAIR: Context-Aware Interpretable Point-of-Interest Recommendation Framework with Fairness Considerations
 
 ![CAPRI-Context-Aware Interpretable Point-of-Interest Recommendation Framework](https://github.com/RecSys-lab/CAPRI/blob/main/_contents/cover.jpg "CAPRI-Context-Aware interpretable PoI Recommender")
 
-**CAPRI** is a specialized framework implemented in `Python` for evaluating and benchmarking several state-of-the-art POI recommendation models. The framework is equipped with state-of-the-art models, algorithms, well-known datasets for POI recommendations, and multi-dimensional evaluation criteria (accuracy, beyond-accuracy and user-item fairness). It also supports reproducibility of results using various adjustable configurations for comparative experiments.
+**CAPRI-FAIR** is a fork of **CAPRI**, a specialized framework implemented in `Python` for evaluating and benchmarking several state-of-the-art POI recommendation models. The framework includes fairness considerations and is equipped with state-of-the-art models, algorithms, well-known datasets for POI recommendations, and multi-dimensional evaluation criteria (accuracy, beyond-accuracy and user-item fairness). It also supports reproducibility of results using various adjustable configurations for comparative experiments.
+
+---
+
+(The following is taken from the original CAPRI repository)
 
 💡 You can have a general overview of the framework on its [web-page](https://caprirecsys.github.io/CAPRI/ "web-page"), or check the documentation on [readthedocs](https://capri.readthedocs.io/en/latest/ "readthedocs").
 
