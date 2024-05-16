@@ -1,30 +1,18 @@
 # CAPRI-FAIR: Context-Aware Interpretable Point-of-Interest Recommendation Framework with Fairness Considerations
 
-![CAPRI-Context-Aware Interpretable Point-of-Interest Recommendation Framework](https://github.com/RecSys-lab/CAPRI/blob/main/_contents/cover.jpg "CAPRI-Context-Aware interpretable PoI Recommender")
+![CAPRI-FAIR Framework](https://github.com/franciszacdlc/CAPRI-FAIR/blob/main/_contents/CAPRI_FAIR_graphs.png "CAPRI-FAIR : Context-Aware interpretable PoI Recommender with Fairness considerations")
 
 **CAPRI-FAIR** is a fork of **CAPRI**, a specialized framework implemented in `Python` for evaluating and benchmarking several state-of-the-art POI recommendation models. The framework includes fairness considerations and is equipped with state-of-the-art models, algorithms, well-known datasets for POI recommendations, and multi-dimensional evaluation criteria (accuracy, beyond-accuracy and user-item fairness). It also supports reproducibility of results using various adjustable configurations for comparative experiments.
 
----
+## Workflow of CAPRI-FAIR
 
-(The following is taken from the original CAPRI repository)
+The figure below shows the general framework for running this module.
 
-💡 You can have a general overview of the framework on its [web-page](https://caprirecsys.github.io/CAPRI/ "web-page"), or check the documentation on [readthedocs](https://capri.readthedocs.io/en/latest/ "readthedocs").
+![CAPRI-FAIR workflow](https://github.com/franciszacdlc/CAPRI-FAIR/blob/main/_contents/CAPRI_FAIR_workflow.png "CAPRI-FAIR : Context-Aware interpretable PoI Recommender with Fairness considerations")
 
-## Workflow of CAPRI
+## Installation
 
-Below figure illustrates the general workflow handled by **CAPRI**.
-
-![CAPRI](https://github.com/RecSys-lab/CAPRI/blob/main/_contents/CAPRIFramework.png "CAPRI-Context-Aware interpretable PoI Recommender")
-
-## 🚀 Using the Framework
-
-Do you want to start working with **CAPRI**? It is pretty easy! Just clone the repository and follow the instructions below:
-
-> ⏳ We are working on making the repository available on **pip** package manager. Hence, in the next versions, you will not need to clone the framework anymore.
-
-### ☑️ Prerequisites
-
-Before running the framework, there are a set of libraries to be installed:
+Just clone this repository and install the prerequisites below, or in the `requirements.txt`.
 
     - Python >= 3.4
     - NumPy >= 1.19
@@ -33,67 +21,47 @@ Before running the framework, there are a set of libraries to be installed:
     - PyInquirer >= 1.0.3
     - Typing_extensions >= 3.7.4.3
 
-Looking for a simpler solution? Simply run the below command in the root directory after cloning the project:
-
-```python
-pip install -r requirements.txt
-```
-
-Everything is set. Now you can use the framework! 😊
-
 ### 🚀 Launch the Application
 
-Now you can start the project by running the `main.py` file in the root directory. With this, the application settings are loaded from the `config.py` file. You can select from different options to choose a model (_e.g._ GeoSoCa, available on the [/Models/](https://github.com/CapriRecSys/CAPRI/tree/main/Models "/Models/") folder) and a dataset (_e.g._ Yelp, available on the [/Data/](https://github.com/CapriRecSys/CAPRI/tree/main/Data "/Data/") folder) to be processed by the selected model, along with a fusion operator (_e.g._ prodect or sum). The system starts processing data using the selected model and provides some evaluations on it. The final results (containing a evaluation file and the recommendation lists) will be added to the [/Outputs/](https://github.com/CapriRecSys/CAPRI/tree/main/Outputs "/Outputs/") folder, with a name template indicating your choices for evaluation. For instance:
+The app can be run in the CLI using the `main_cli.py` module.
 
-```python
+```bash
+$ python main_cli.py --help
+usage: main_cli.py [-h] [--reranker [RERANKER]] [--fairness [FAIRNESS]] [--provider_alpha [PROVIDER_ALPHA]] [--exposure_model [EXPOSURE_MODEL]] [--consumer_beta [CONSUMER_BETA]] [--evaluation [EVALUATION ...]] [--k [K]] model dataset fusion
+
+positional arguments:
+  model                 Recommender model to use (GeoSoCa,LORE,USG)
+  dataset               Dataset to test on (Gowalla,Yelp,Foursquare)
+  fusion                Fusion method for the operands (Product,Sum,WeightedSum)
+
+options:
+  -h, --help            show this help message and exit
+  --reranker [RERANKER]
+                        Post-filter reranking method to use to use (TopK,Random,ItemExposure)
+  --fairness [FAIRNESS]
+                        Fairness context to consider (None,Provider,Consumer,Both)
+  --provider_alpha [PROVIDER_ALPHA]
+                        Coefficient of provider fairness factor
+  --exposure_model [EXPOSURE_MODEL]
+                        Coefficient of provider fairness factor
+  --consumer_beta [CONSUMER_BETA]
+                        Coefficient of consumer fairness factor
+  --evaluation [EVALUATION ...]
+                        Metrics to evaluate (Precision,Recall,mAP,NDCG)
+  --k [K]               Number of recommended POIs to evaluate per user
+```
+
+Here is a sample command for running the GeoSoCa model on the Gowalla dataset, using a Linear provider fairness model and a provider fairness weight of 0.75. The Precision, Recall, mAP, and NDCG metrics are recorded, with the recommendation size `k = 10`.
+
+```bash
+$ python main_cli.py GeoSoCa Gowalla Sum --fairness Provider --provider_alpha 0.75 --exposure_model Linear --k 10 --evaluation Precision Recall mAP NDCG
+```
+
+This generates both evaluation files and the actual recommendation lists for each user.
+
+```bash
 # The evaluation file containing the selected evaluation metrics - It shows that the user selected GeoSoCa model on Gowalla dataset with Product fusion type, applied on 5628 users where the top-10 results are selected for evaluation and the length of the recommendation lists are 15
 Eval_GeoSoCa_Gowalla_Product_5628user_top10_limit15.csv
 # The txt file containing the evaluation lists with the configurations described above
 Rec_GeoSoCa_Gowalla_Product_5628user_top10_limit15.txt
 ```
-
-## 🧩 Contribution Guide
-
-Contributing to open source codes is a rewarding method to learn, teach, and gain experience. We welcome all contributions from bug fixes to new features and extensions. Do you want to be a contributer of the project? Read more about is in our [contribution guide page](https://capri.readthedocs.io/en/latest/contribution.html "readthedocs").
-
-<!-- ## Team
-
-CAPRI is developed with ❤️ by:
-
-| <a href="https://github.com/alitourani"><img src="https://github.com/alitourani.png?size=70"></a> | <a href="https://github.com/rahmanidashti"><img src="https://github.com/rahmanidashti.png?size=70"></a> | <a href="https://github.com/naghiaei"><img src="https://github.com/naghiaei.png" width="70"></a> | <a href="https://github.com/yasdel"><img src="https://yasdel.github.io/images/yashar_avator.jpg" width="70"></a> |
-| ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
-| [Ali Tourani](mailto:ali.tourani@uni.lu "ali.tourani@uni.lu")                                     | [Hossein A. Rahmani](mailto:h.rahmani@ucl.ac.uk "h.rahmani@ucl.ac.uk")                                  | [MohammadMehdi Naghiaei](mailto:naghiaei@usc.edu "naghiaei@usc.edu")                             | [Yashar Deldjoo](mailto:yashar.deldjoo@poliba.it "yashar.deldjoo@poliba.it")                                     | -->
-
-## 📝 Citation
-
-If you find **CAPRI** useful for your research or development, please cite the following [paper](https://arxiv.org/):
-
-```
-@inproceedings{RecsysLab2022CAPRI,
-  title={TBD},
-  author={TBA},
-  booktitle={TBA},
-  year={2022}
-}
-```
-
-## 🟢 Versions
-
-- Version 0.1
-  - Implementation of the framework with a simple GUI
-  - Supporting well-known models, datasets, and evaluation metrics for POI recommendation
-  - Saving the previously executed calculation files for reusability
-
-## 🟠 Known Issues
-
-- Saving only userIds in Active/Inactive lists (groupby and drop freq)
-- Loading more calculated files from disk
-  - AKDE in GeoSoCa
-  - S and G for USG
-  - FCF, AMK, and KDE in LORE
-
-## 🟡 TODOs
-
-- Adding the impact of **Weighted Sum Fusion** when running models
-- Adding a separate metric evaluations class for fairness
-- Making a pip package for CAPRI (release planning)
