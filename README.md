@@ -1,6 +1,6 @@
 # CAPRI-FAIR: Context-Aware Interpretable Point-of-Interest Recommendation Framework with Fairness Considerations
 
-![CAPRI-FAIR Framework](https://github.com/franciszac-dlc/CAPRI-FAIR/_contents/CAPRI_FAIR_graphs.png "CAPRI-FAIR : Context-Aware interpretable PoI Recommender with Fairness considerations")
+![CAPRI-FAIR Framework](https://github.com/franciszac-dlc/CAPRI-FAIR/blob/main/_contents/CAPRI_FAIR_graphs.png "CAPRI-FAIR : Context-Aware interpretable PoI Recommender with Fairness considerations")
 
 **CAPRI-FAIR** is a fork of **CAPRI**, a specialized framework implemented in `Python` for evaluating and benchmarking several state-of-the-art POI recommendation models. The framework includes fairness considerations and is equipped with state-of-the-art models, algorithms, well-known datasets for POI recommendations, and multi-dimensional evaluation criteria (accuracy, beyond-accuracy and user-item fairness). It also supports reproducibility of results using various adjustable configurations for comparative experiments.
 
@@ -8,7 +8,7 @@
 
 The figure below shows the general framework for running this module.
 
-![CAPRI-FAIR workflow](https://github.com/franciszac-dlc/CAPRI-FAIR/_contents/CAPRI_FAIR_workflow.png "CAPRI-FAIR : Context-Aware interpretable PoI Recommender with Fairness considerations")
+![CAPRI-FAIR workflow](https://github.com/franciszac-dlc/CAPRI-FAIR/blob/main/_contents/CAPRI_FAIR_workflow.png "CAPRI-FAIR : Context-Aware interpretable PoI Recommender with Fairness considerations")
 
 ## Installation
 
