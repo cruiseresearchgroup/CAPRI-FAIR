@@ -10,6 +10,10 @@ The figure below shows the general framework for running this module.
 
 ![CAPRI-FAIR workflow](_contents/CAPRI_FAIR_workflow.png "CAPRI-FAIR : Context-Aware interpretable PoI Recommender with Fairness considerations")
 
+## Paper
+
+The paper can be found here: https://arxiv.org/abs/2406.03109
+
 ## Installation
 
 Just clone this repository and install the prerequisites below, or in the `requirements.txt`.
