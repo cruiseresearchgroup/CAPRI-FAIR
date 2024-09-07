@@ -31,6 +31,10 @@ Workflow
 
 The framework is released under GPL v3 License and can be accessed (download or clone) via GitHub.
 
+Paper
+=====
+
+The paper can be found here: https://arxiv.org/abs/2406.03109
 
 Configuration
 =============
